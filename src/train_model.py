@@ -75,7 +75,7 @@ def train_model():
             loss.backward()
             optimizer.step()
 
-            err = th.sqrt(loss)
+            err = torch.sqrt(loss)
 
             logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Loss: {loss.item()} | Error: {err.item()}')
 
@@ -91,7 +91,7 @@ def train_model():
             ims = net(stars)
             ims = softmax(ims.view(*ims.size()[:2], -1)).view_as(ims)
             loss = mse(ims, bkgnd) * 512 * 512
-            err = th.sqrt(loss)
+            err = torch.sqrt(loss)
             logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Loss: {loss.item()} | Error: {err.item()}')
 
         torch.save({
