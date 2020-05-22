@@ -71,6 +71,12 @@ def train_model():
             err = torch.sqrt(loss)
             logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Loss: {loss.item()} | Error: {err.item()}')
 
+            pos1 = torch.argmax(ims[0].view(512*512))
+            pos2 = torch.argmax(bkgnd[0].view(512*512))
+            max1 = torch.max(ims[0].view(512*512))
+            max2 = torch.max(bkgnd[0].view(512*512))
+            logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Pos: {pos1.item()} {pos2.item()} | Max: {max1.item()} {max2.item()}')
+
     def test(epoch):
         mdl.eval()
         dataloader = dataloader_test
