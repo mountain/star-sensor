@@ -4,8 +4,8 @@ import numpy as np
 import torch as th
 import torch.nn as nn
 
-from unet.base import UNet, Swish
-from unet.residual import Basic, Bottleneck
+from unet.base import Swish
+from unet.qunet import QUNet, QBasic
 
 
 class Gaussian(nn.Module):
@@ -37,7 +37,7 @@ class Gaussian(nn.Module):
 class Model(nn.Module):
     def __init__(self):
         super().__init__()
-        self.unet = UNet(1, 1, block=Basic, relu=Swish(),
+        self.unet = QUNet(1, 1, block=QBasic, relu=Swish(),
             ratio=1.0, size=512,
             vblks=[1, 1, 1, 1], hblks=[1, 1, 1, 1],
             scales=np.array([-2, -2, -2, -2]),
