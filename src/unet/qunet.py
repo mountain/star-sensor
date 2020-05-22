@@ -20,7 +20,7 @@ class Enconv(nn.Module):
         self.out_channels = out_channels
 
         self.scale = nn.Upsample(size=size, mode='bilinear')
-        self.conv = QuaternionConv(in_channels, out_channels, kernel_size=3, stride=1, padding=1, groups=1, rotation=True)
+        self.conv = QuaternionConv(in_channels, out_channels, kernel_size=3, stride=1, padding=1, groups=1, rotation=False)
 
     def forward(self, x):
         x = self.scale(x).contiguous()
@@ -37,7 +37,7 @@ class Deconv(nn.Module):
         self.out_channels = out_channels
 
         self.scale = nn.Upsample(size=size, mode='bilinear')
-        self.conv = QuaternionConv(in_channels, out_channels, kernel_size=3, stride=1, padding=1, groups=1, rotation=True)
+        self.conv = QuaternionConv(in_channels, out_channels, kernel_size=3, stride=1, padding=1, groups=1, rotation=False)
 
     def forward(self, x):
         x = self.scale(x).contiguous()
@@ -221,8 +221,8 @@ class QBasic(th.nn.Module):
 
         self.step = step
         self.relu = relu
-        self.conv1 = QuaternionConv(dim, dim, kernel_size=3, stride=1, padding=1, groups=1, rotation=True)
-        self.conv2 = QuaternionConv(dim, dim, kernel_size=3, stride=1, padding=1, groups=1, rotation=True)
+        self.conv1 = QuaternionConv(dim, dim, kernel_size=3, stride=1, padding=1, groups=1)
+        self.conv2 = QuaternionConv(dim, dim, kernel_size=3, stride=1, padding=1, groups=1)
 
     def forward(self, x):
 
