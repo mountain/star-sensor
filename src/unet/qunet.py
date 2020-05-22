@@ -214,8 +214,8 @@ class QUNet(nn.Module):
 
 
 class QBasic(th.nn.Module):
-    extension = 1
-    least_required_dim = 1
+    extension = 4
+    least_required_dim = 4
     def __init__(self, dim, step, relu=None):
         super(QBasic, self).__init__()
 
