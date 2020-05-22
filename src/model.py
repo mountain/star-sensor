@@ -9,7 +9,7 @@ from unet.base import Swish
 from unet.qunet import QUNet, QBasic
 from qnn.quaternion_layers import QuaternionLinear
 from qnn.quaternion_ops import q_normalize
-from sky import Skyview
+from sky import Skyview, cast
 
 
 class Gaussian(nn.Module):
@@ -52,7 +52,7 @@ class ControlModel(nn.Module):
         self.fc = QuaternionLinear(512 * 512, 9)
 
     def forward(self, x):
-        sk = self.skyview(th.zeros(x.size()[0], 1, 3, 3))
+        sk = self.skyview(cast(np.zeros(x.size()[0], 1, 3, 3)))
         im = self.unet(th.cat((x, sk), dim=1))
         qs = q_normalize(self.fc(im.view(*im.size()[:2], -1))).view(x.size()[0], -1, 3, 3)
         print(qs.size())
