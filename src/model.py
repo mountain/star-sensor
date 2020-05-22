@@ -40,7 +40,7 @@ class Model(nn.Module):
         self.unet = QUNet(1, 1, block=QBasic, relu=Swish(),
             ratio=1.0, size=512,
             vblks=[1, 1, 1, 1], hblks=[1, 1, 1, 1],
-            scales=np.array([-2, -2, -2, -2]),
+            scales=np.array([-1, -2, -2, -2]),
             factors=np.array([1, 1, 1, 1]),
         )
         self.softmax = nn.Softmax(2)
