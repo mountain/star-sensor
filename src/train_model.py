@@ -11,7 +11,7 @@ import torch.nn as nn
 from pathlib import Path
 from torch.utils.data import DataLoader
 
-from model import Model
+from model import Model, Gaussian
 from data_loader import StarDataset, Dataset4Preloader
 
 print('cudnn:', torch.backends.cudnn.version())
@@ -47,7 +47,9 @@ def train_model():
     epochs = 500
     logger.info('lr: {}, wd: {}'.format(lr, wd))
     mdl = Model()
+    gss = Gaussian()
     mdl = mdl.cuda()
+    gss = gss.cuda()
     optimizer = torch.optim.AdamW(mdl.parameters(), lr=lr, weight_decay=wd)
     mse = nn.MSELoss()
 
@@ -61,7 +63,7 @@ def train_model():
             bkgnd = bkgnd.cuda()
 
             ims = mdl(stars)
-            loss = mse(ims, bkgnd) * 512 * 512
+            loss = mse(gss(ims), gss(bkgnd)) * 512 * 512
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -79,7 +81,7 @@ def train_model():
             bkgnd = bkgnd.cuda()
 
             ims = mdl(stars)
-            loss = mse(ims, bkgnd) * 512 * 512
+            loss = mse(gss(ims), gss(bkgnd)) * 512 * 512
             err = torch.sqrt(loss)
             logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Loss: {loss.item()} | Error: {err.item()}')
 
