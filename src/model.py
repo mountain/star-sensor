@@ -41,7 +41,7 @@ class Model(nn.Module):
             ratio=1.0, size=512,
             vblks=[1, 1, 1, 1], hblks=[1, 1, 1, 1],
             scales=np.array([-2, -2, -2, -2]),
-            factors=np.array([2, 2, 2, 2]),
+            factors=np.array([1, 1, 1, 1]),
         )
         self.softmax = nn.Softmax(2)
 
