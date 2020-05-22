@@ -6,6 +6,9 @@ import torch.nn as nn
 
 from unet.base import Swish
 from unet.qunet import QUNet, QBasic
+from qnn.quaternion_layers import QuaternionLinear
+from qnn.quaternion_ops import q_normalize
+from sky import Skyview
 
 
 class Gaussian(nn.Module):
@@ -34,18 +37,30 @@ class Gaussian(nn.Module):
         return self.op(*input)
 
 
-class Model(nn.Module):
+class ControlModel(nn.Module):
     def __init__(self):
         super().__init__()
-        self.unet = QUNet(1, 1, block=QBasic, relu=Swish(),
+        self.skyview = Skyview()
+
+        self.unet = QUNet(2, 1, block=QBasic, relu=Swish(),
             ratio=1.0, size=512,
             vblks=[1, 1, 1, 1], hblks=[1, 1, 1, 1],
             scales=np.array([-2, -2, -2, -2]),
             factors=np.array([1, 1, 1, 1]),
         )
-        self.softmax = nn.Softmax(2)
+        self.fc = QuaternionLinear(512 * 512, 1)
 
     def forward(self, x):
-        ims = self.unet(x)
-        ims = self.softmax(ims.view(*ims.size()[:2], -1)).view_as(ims)
-        return ims
+        sk = self.skyview(th.zeros(*x.size()))
+        im = self.unet(th.cat((x, sk), dim=1))
+        qs = q_normalize(self.fc(im.view(*im.size()[:2], -1)))
+
+        sk = self.skyview(qs)
+        im = self.unet(th.cat((x, sk), dim=1))
+        qs = q_normalize(self.fc(im.view(*im.size()[:2], -1)))
+
+        sk = self.skyview(qs)
+        im = self.unet(th.cat((x, sk), dim=1))
+        qs = q_normalize(self.fc(im.view(*im.size()[:2], -1)))
+
+        return self.skyview(qs)

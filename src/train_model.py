@@ -11,7 +11,7 @@ import torch.nn as nn
 from pathlib import Path
 from torch.utils.data import DataLoader
 
-from model import Model, Gaussian
+from model import ControlModel, Gaussian
 from data_loader import StarDataset, Dataset4Preloader
 
 print('cudnn:', torch.backends.cudnn.version())
@@ -46,7 +46,7 @@ def train_model():
     wd = 0.000338
     epochs = 500
     logger.info('lr: {}, wd: {}'.format(lr, wd))
-    mdl = Model()
+    mdl = ControlModel()
     gss = Gaussian()
     mdl = mdl.cuda()
     gss = gss.cuda()
@@ -58,38 +58,25 @@ def train_model():
         dataloader = dataloader_train
         for step, sample in enumerate(dataloader):
             stars = torch.FloatTensor(sample['stars'])
-            bkgnd = torch.FloatTensor(sample['background'])
             stars = stars.cuda()
-            bkgnd = bkgnd.cuda()
 
             ims = mdl(stars)
-            loss = mse(gss(ims), gss(bkgnd)) * 512 * 512
+            loss = mse(ims, stars)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-
-            err = torch.sqrt(loss)
-            logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Loss: {loss.item()} | Error: {err.item()}')
-
-            pos1 = torch.argmax(ims[0].view(512*512))
-            pos2 = torch.argmax(bkgnd[0].view(512*512))
-            max1 = torch.max(ims[0].view(512*512))
-            max2 = torch.max(bkgnd[0].view(512*512))
-            logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Pos: {pos1.item()} {pos2.item()} | Max: {max1.item()} {max2.item()}')
+            logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Loss: {loss.item()}')
 
     def test(epoch):
         mdl.eval()
         dataloader = dataloader_test
         for step, sample in enumerate(dataloader):
             stars = torch.FloatTensor(sample['stars'])
-            bkgnd = torch.FloatTensor(sample['background'])
             stars = stars.cuda()
-            bkgnd = bkgnd.cuda()
 
             ims = mdl(stars)
-            loss = mse(gss(ims), gss(bkgnd)) * 512 * 512
-            err = torch.sqrt(loss)
-            logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Loss: {loss.item()} | Error: {err.item()}')
+            loss = mse(ims, stars)
+            logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Loss: {loss.item()}')
 
         torch.save({
             'net': mdl.state_dict(),

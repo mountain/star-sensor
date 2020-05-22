@@ -464,8 +464,6 @@ def quaternion_linear_rotation(input, zero_kernel, r_weight, i_weight, j_weight,
         else:
             return output
 
-
-
 # Custom AUTOGRAD for lower VRAM consumption
 class QuaternionLinearFunction(torch.autograd.Function):
 
@@ -537,6 +535,7 @@ class QuaternionLinearFunction(torch.autograd.Function):
             grad_bias   = grad_output.sum(0).squeeze(0)
 
         return grad_input, grad_weight_r, grad_weight_i, grad_weight_j, grad_weight_k, grad_bias
+
 
 def hamilton_product(q0, q1):
     """
@@ -619,6 +618,7 @@ def unitary_init(in_features, out_features, rng, kernel_size=None, criterion='he
 
     return (v_r, v_i, v_j, v_k)
 
+
 def random_init(in_features, out_features, rng, kernel_size=None, criterion='glorot'):
 
     if kernel_size is not None:
@@ -649,8 +649,6 @@ def random_init(in_features, out_features, rng, kernel_size=None, criterion='glo
     v_i = np.random.uniform(-1.0,1.0,number_of_weights)
     v_j = np.random.uniform(-1.0,1.0,number_of_weights)
     v_k = np.random.uniform(-1.0,1.0,number_of_weights)
-
-
 
     v_r = v_r.reshape(kernel_shape)
     v_i = v_i.reshape(kernel_shape)
@@ -717,6 +715,7 @@ def quaternion_init(in_features, out_features, rng, kernel_size=None, criterion=
 
     return (weight_r, weight_i, weight_j, weight_k)
 
+
 def create_dropout_mask(dropout_p, size, rng, as_type, operation='linear'):
     if operation == 'linear':
         mask = rng.binomial(n=1, p=1-dropout_p, size=size)
@@ -724,6 +723,7 @@ def create_dropout_mask(dropout_p, size, rng, as_type, operation='linear'):
     else:
          raise Exception("create_dropout_mask accepts only 'linear'. Found operation = "
                         + str(operation))
+
 
 def affect_init(r_weight, i_weight, j_weight, k_weight, init_func, rng, init_criterion):
     if r_weight.size() != i_weight.size() or r_weight.size() != j_weight.size() or \
@@ -774,6 +774,7 @@ def affect_init_conv(r_weight, i_weight, j_weight, k_weight, kernel_size, init_f
     i_weight.data = i.type_as(i_weight.data)
     j_weight.data = j.type_as(j_weight.data)
     k_weight.data = k.type_as(k_weight.data)
+
 
 def get_kernel_and_weight_shape(operation, in_channels, out_channels, kernel_size):
     if operation == 'convolution1d':
