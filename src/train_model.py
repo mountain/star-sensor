@@ -47,9 +47,7 @@ def train_model():
     epochs = 500
     logger.info('lr: {}, wd: {}'.format(lr, wd))
     mdl = ControlModel()
-    gss = Gaussian()
     mdl = mdl.cuda()
-    gss = gss.cuda()
     optimizer = torch.optim.AdamW(mdl.parameters(), lr=lr, weight_decay=wd)
     mse = nn.MSELoss()
 

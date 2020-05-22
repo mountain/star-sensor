@@ -54,6 +54,7 @@ class ControlModel(nn.Module):
         sk = self.skyview(th.zeros(*x.size()))
         im = self.unet(th.cat((x, sk), dim=1))
         qs = q_normalize(self.fc(im.view(*im.size()[:2], -1)))
+        print(qs.size())
 
         sk = self.skyview(qs)
         im = self.unet(th.cat((x, sk), dim=1))
