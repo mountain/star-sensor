@@ -33,10 +33,10 @@ fileHandler = logging.FileHandler(log_file)
 fileHandler.setFormatter(logFormatter)
 logger.addHandler(fileHandler)
 
-dataset_train = StarDataset('train.csv', '.')
+dataset_train = StarDataset('train.csv', '/mnt/data02/mingli')
 dataset_train = Dataset4Preloader(DataLoader(dataset_train, batch_size=1, shuffle=False, num_workers=64), 'train')
 dataloader_train = DataLoader(dataset_train, batch_size=64, shuffle=True, num_workers=64)
-dataset_test = StarDataset('test.csv', '.')
+dataset_test = StarDataset('test.csv', '/mnt/data02/mingli')
 dataset_test = Dataset4Preloader(DataLoader(dataset_test, batch_size=1, shuffle=False, num_workers=64), 'test')
 dataloader_test = DataLoader(dataset_test, batch_size=64, shuffle=True, num_workers=64)
 
