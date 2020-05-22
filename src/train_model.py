@@ -11,9 +11,8 @@ import torch.nn as nn
 from pathlib import Path
 from torch.utils.data import DataLoader
 
+from model import Model
 from data_loader import StarDataset, Dataset4Preloader
-from unet.base import UNet, Swish
-from unet.residual import Basic, Bottleneck
 
 print('cudnn:', torch.backends.cudnn.version())
 
@@ -47,20 +46,13 @@ def train_model():
     wd = 0.000338
     epochs = 500
     logger.info('lr: {}, wd: {}'.format(lr, wd))
-    net = UNet(3, 1, block=Basic, relu=Swish(),
-        ratio=1.0, size=512,
-        vblks=[1, 1, 1, 1], hblks=[1, 1, 1, 1],
-        scales=np.array([-2, -2, -2, -2]),
-        factors=np.array([1, 1, 1, 1]),
-    )
-    softmax = nn.Softmax(2)
-    net = net.cuda()
-    softmax = softmax.cuda()
-    optimizer = torch.optim.AdamW(net.parameters(), lr=lr, weight_decay=wd)
+    mdl = Model()
+    mdl = mdl.cuda()
+    optimizer = torch.optim.AdamW(mdl.parameters(), lr=lr, weight_decay=wd)
     mse = nn.MSELoss()
 
     def train(epoch):
-        net.train()
+        mdl.train()
         dataloader = dataloader_train
         for step, sample in enumerate(dataloader):
             stars = torch.FloatTensor(sample['stars'])
@@ -68,34 +60,31 @@ def train_model():
             stars = stars.cuda()
             bkgnd = bkgnd.cuda()
 
-            ims = net(stars)
-            ims = softmax(ims.view(*ims.size()[:2], -1)).view_as(ims)
+            ims = mdl(stars)
             loss = mse(ims, bkgnd) * 512 * 512
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
             err = torch.sqrt(loss)
-
             logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Loss: {loss.item()} | Error: {err.item()}')
 
     def test(epoch):
-        net.eval()
+        mdl.eval()
         dataloader = dataloader_test
         for step, sample in enumerate(dataloader):
             stars = torch.FloatTensor(sample['stars'])
             bkgnd = torch.FloatTensor(sample['background'])
             stars = stars.cuda()
             bkgnd = bkgnd.cuda()
-                        
-            ims = net(stars)
-            ims = softmax(ims.view(*ims.size()[:2], -1)).view_as(ims)
+
+            ims = mdl(stars)
             loss = mse(ims, bkgnd) * 512 * 512
             err = torch.sqrt(loss)
             logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Loss: {loss.item()} | Error: {err.item()}')
 
         torch.save({
-            'net': net.state_dict(),
+            'net': mdl.state_dict(),
             'optimizer': optimizer.state_dict(),
         }, model_path / f'z_epoch{epoch + 1:03d}.chk')
         glb = list(model_path.glob('*.chk'))
