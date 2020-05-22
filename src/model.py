@@ -3,6 +3,7 @@
 import numpy as np
 import torch as th
 import torch.nn as nn
+import sys
 
 from unet.base import Swish
 from unet.qunet import QUNet, QBasic
@@ -55,6 +56,7 @@ class ControlModel(nn.Module):
         im = self.unet(th.cat((x, sk), dim=1))
         qs = q_normalize(self.fc(im.view(*im.size()[:2], -1)))
         print(qs.size())
+        sys.stdout.flush()
 
         sk = self.skyview(qs)
         im = self.unet(th.cat((x, sk), dim=1))
