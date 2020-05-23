@@ -42,26 +42,26 @@ class ControlModel(nn.Module):
         super().__init__()
         self.skyview = Skyview()
 
-        self.unet = QUNet(2, 2, block=QBasic, relu=Swish(),
+        self.unet = QUNet(2, 4, block=QBasic, relu=Swish(),
             ratio=1.0, size=512,
             vblks=[1, 1, 1, 1], hblks=[1, 1, 1, 1],
             scales=np.array([-2, -2, -2, -2]),
             factors=np.array([1, 1, 1, 1]),
         )
-        self.fc = QuaternionLinear(2 * 512 * 512, 4)
+        self.fc = QuaternionLinear(4 * 512 * 512, 4)
 
     def forward(self, x):
         batch = x.size()[0]
         sk = self.skyview(cast(np.zeros([batch, 4]))).view(batch, 1, 512, 512)
         im = self.unet(th.cat((x, sk), dim=1))
-        qs = q_normalize(self.fc(im.view(*im.size()[:2], -1))).view(batch, 4)
+        qs = q_normalize(self.fc(im.view(batch, -1))).view(batch, 4)
 
         sk = self.skyview(qs)
         im = self.unet(th.cat((x, sk), dim=1)).view(batch, 1, 512, 512)
-        qs = q_normalize(self.fc(im.view(*im.size()[:2], -1))).view(batch, 4)
+        qs = q_normalize(self.fc(im.view(batch, -1))).view(batch, 4)
 
         sk = self.skyview(qs)
         im = self.unet(th.cat((x, sk), dim=1)).view(batch, 1, 512, 512)
-        qs = q_normalize(self.fc(im.view(*im.size()[:2], -1))).view(batch, 4)
+        qs = q_normalize(self.fc(im.view(batch, -1))).view(batch, 4)
 
         return self.skyview(qs)
