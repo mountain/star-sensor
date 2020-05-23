@@ -58,13 +58,16 @@ def train_model():
         mdl.train()
         dataloader = dataloader_train
         for step, sample in enumerate(dataloader):
+            q = th.FloatTensor(sample['q']).view(-1, 4)
             stars = th.FloatTensor(sample['stars']).view(-1, 1, 512, 512)
             if th.cuda.is_available():
                 stars = stars.cuda()
+                q = q.cuda()
 
             im1, im2, im3, im4, im5, im6, qns = mdl(stars)
-            loss = mse(gss(8 * im1), gss(stars)) + mse(gss(8 * im2), gss(stars)) + mse(gss(8 * im3), gss(stars))\
-                   + mse(gss(8 * im4), gss(stars)) + mse(gss(8 * im5), gss(stars)) + mse(gss(8 * im6), gss(stars))
+            loss = mse(qns, q) \
+                + mse(gss(8 * im1), gss(stars)) + mse(gss(8 * im2), gss(stars)) + mse(gss(8 * im3), gss(stars))\
+                + mse(gss(8 * im4), gss(stars)) + mse(gss(8 * im5), gss(stars)) + mse(gss(8 * im6), gss(stars))
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
