@@ -88,13 +88,13 @@ def train_model():
                    + 4 * mse(gss(im4), gss(stars)) + 5 * mse(gss(im5), gss(stars)) + 6 * mse(gss(im6), gss(stars))
             logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Loss: {loss.item()}')
 
-            if step % 20 == 0:
-                plot(open('1.png', mode='wb'), im1)
-                plot(open('2.png', mode='wb'), im2)
-                plot(open('3.png', mode='wb'), im3)
-                plot(open('4.png', mode='wb'), im4)
-                plot(open('5.png', mode='wb'), im5)
-                plot(open('6.png', mode='wb'), im6)
+            if step % 50 == 0:
+                plot(open('1.png', mode='wb'), im1.detach().numpy().reshape(512, 512))
+                plot(open('2.png', mode='wb'), im2.detach().numpy().reshape(512, 512))
+                plot(open('3.png', mode='wb'), im3.detach().numpy().reshape(512, 512))
+                plot(open('4.png', mode='wb'), im4.detach().numpy().reshape(512, 512))
+                plot(open('5.png', mode='wb'), im5.detach().numpy().reshape(512, 512))
+                plot(open('6.png', mode='wb'), im6.detach().numpy().reshape(512, 512))
 
         th.save({
             'net': mdl.state_dict(),
