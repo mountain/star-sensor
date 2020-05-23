@@ -100,6 +100,9 @@ class Gaussian(nn.Module):
         kernel_size = 3
         sigma = 6
         x_cord = th.arange(kernel_size)
+        if th.cuda.is_available():
+            x_cord = x_cord.cuda()
+
         x_grid = x_cord.repeat(kernel_size).view(kernel_size, kernel_size)
         y_grid = x_grid.t()
         xy_grid = th.stack([x_grid, y_grid], dim=-1)
