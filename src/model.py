@@ -52,16 +52,17 @@ class ControlModel(nn.Module):
 
     def forward(self, x):
         batch = x.size()[0]
+
         sk = self.skyview(cast(np.zeros([batch, 4]))).view(batch, 1, 512, 512)
         im = self.unet(th.cat((x, sk), dim=1))
         qs = q_normalize(self.fc(im.view(batch, -1))).view(batch, 4)
 
-        sk = self.skyview(qs)
-        im = self.unet(th.cat((x, sk), dim=1)).view(batch, 1, 512, 512)
+        sk = self.skyview(qs).view(batch, 1, 512, 512)
+        im = self.unet(th.cat((x, sk), dim=1))
         qs = q_normalize(self.fc(im.view(batch, -1))).view(batch, 4)
 
-        sk = self.skyview(qs)
-        im = self.unet(th.cat((x, sk), dim=1)).view(batch, 1, 512, 512)
+        sk = self.skyview(qs).view(batch, 1, 512, 512)
+        im = self.unet(th.cat((x, sk), dim=1))
         qs = q_normalize(self.fc(im.view(batch, -1))).view(batch, 4)
 
         return self.skyview(qs)
