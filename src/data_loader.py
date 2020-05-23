@@ -83,13 +83,17 @@ class StarDataset(Dataset):
 
         img_name = os.path.join(self.root_dir, self.frame.iloc[idx, 0])
         image = np.array(cv2.imread(img_name, cv2.IMREAD_GRAYSCALE), dtype=np.float32)
-        background = np.array(cv2.imread(img_name.replace('.png', '.b.png'), cv2.IMREAD_GRAYSCALE), dtype=np.float32)
+        #background = np.array(cv2.imread(img_name.replace('.png', '.b.png'), cv2.IMREAD_GRAYSCALE), dtype=np.float32)
         image = image / 255.0
-        background = background / 255.0
+        #background = background / 255.0
 
         image = image.reshape(1, 512, 512)
-        background = background.reshape(1, 512, 512)
-        sample = {'stars': image, 'background': background}
+        #background = background.reshape(1, 512, 512)
+
+        image = image * (image > 0.5)
+
+        #sample = {'stars': image, 'background': background}
+        sample = {'stars': image}
 
         if self.transform:
             sample = self.transform(sample)
