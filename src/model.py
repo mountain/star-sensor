@@ -5,6 +5,8 @@ import torch as th
 import torch.nn as nn
 
 from unet.base import Swish
+from unet.base import UNet
+from unet.residual import Basic
 from unet.qunet import QUNet, QBasic
 from qnn.quaternion_layers import QuaternionLinear
 from qnn.quaternion_ops import q_normalize, hamilton_product
@@ -42,13 +44,13 @@ class ControlModel(nn.Module):
         super().__init__()
         self.skyview = Skyview()
 
-        self.unet = QUNet(2, 4, block=QBasic, relu=Swish(),
+        self.unet = UNet(2, 4, block=Basic, relu=Swish(),
             ratio=1.0, size=512,
             vblks=[1, 1, 1, 1], hblks=[1, 1, 1, 1],
             scales=np.array([-2, -2, -2, -2]),
             factors=np.array([1, 1, 1, 1]),
         )
-        self.fc = QuaternionLinear(4 * 512 * 512, 4)
+        self.fc = nn.Linear(4 * 512 * 512, 4)
         self.one = cast(np.array([[1, 0, 0, 0]], dtype=np.float32))
         self.one.requires_grad = False
         self.init = self.skyview(self.one).view(1, 1, 512, 512)
@@ -57,27 +59,27 @@ class ControlModel(nn.Module):
     def forward(self, x):
         batch = x.size()[0]
 
-        q1 = q_normalize(self.fc(self.unet(th.cat((x, self.init), dim=1)).view(batch, -1))).view(batch, 4)
+        q1 = q_normalize(self.fc(th.tanh(self.unet(th.cat((x, self.init), dim=1)).view(batch, -1)))).view(batch, 4)
         qa = q1
         s1 = self.skyview(qa).view(batch, 1, 512, 512)
 
-        q2 = q_normalize(self.fc(self.unet(th.cat((x, s1), dim=1)).view(batch, -1))).view(batch, 4)
+        q2 = q_normalize(self.fc(th.tanh(self.unet(th.cat((x, s1), dim=1)).view(batch, -1)))).view(batch, 4)
         qa = q_normalize(hamilton_product(q2, qa))
         s2 = self.skyview(qa).view(batch, 1, 512, 512)
 
-        q3 = q_normalize(self.fc(self.unet(th.cat((x, s2), dim=1)).view(batch, -1))).view(batch, 4)
+        q3 = q_normalize(self.fc(th.tanh(self.unet(th.cat((x, s2), dim=1)).view(batch, -1)))).view(batch, 4)
         qa = q_normalize(hamilton_product(q3, qa))
         s3 = self.skyview(qa).view(batch, 1, 512, 512)
 
-        q4 = q_normalize(self.fc(self.unet(th.cat((x, s3), dim=1)).view(batch, -1))).view(batch, 4)
+        q4 = q_normalize(self.fc(th.tanh(self.unet(th.cat((x, s3), dim=1)).view(batch, -1)))).view(batch, 4)
         qa = q_normalize(hamilton_product(q4, qa))
         s4 = self.skyview(qa).view(batch, 1, 512, 512)
 
-        q5 = q_normalize(self.fc(self.unet(th.cat((x, s4), dim=1)).view(batch, -1))).view(batch, 4)
+        q5 = q_normalize(self.fc(th.tanh(self.unet(th.cat((x, s4), dim=1)).view(batch, -1)))).view(batch, 4)
         qa = q_normalize(hamilton_product(q5, qa))
         s5 = self.skyview(qa).view(batch, 1, 512, 512)
 
-        q6 = q_normalize(self.fc(self.unet(th.cat((x, s5), dim=1)).view(batch, -1))).view(batch, 4)
+        q6 = q_normalize(self.fc(th.tanh(self.unet(th.cat((x, s5), dim=1)).view(batch, -1)))).view(batch, 4)
         qa = q_normalize(hamilton_product(q6, qa))
         s6 = self.skyview(qa).view(batch, 1, 512, 512)
 
