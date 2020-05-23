@@ -66,8 +66,9 @@ def train_model():
             if th.cuda.is_available():
                 stars = stars.cuda()
 
-            ims, qns = mdl(stars)
-            loss = mse(gss(ims), gss(stars))
+            im1, im2, im3, im4, im5, im6, qns = mdl(stars)
+            loss = mse(gss(im1), gss(stars)) + 2 * mse(gss(im2), gss(stars)) + 3 * mse(gss(im3), gss(stars))\
+                   + 4 * mse(gss(im4), gss(stars)) + 5 * mse(gss(im5), gss(stars)) + 6 * mse(gss(im6), gss(stars))
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -81,8 +82,9 @@ def train_model():
             if th.cuda.is_available():
                 stars = stars.cuda()
 
-            ims, qns = mdl(stars)
-            loss = mse(ims, stars)
+            im1, im2, im3, im4, im5, im6, qns = mdl(stars)
+            loss = mse(gss(im1), gss(stars)) + 2 * mse(gss(im2), gss(stars)) + 3 * mse(gss(im3), gss(stars))\
+                   + 4 * mse(gss(im4), gss(stars)) + 5 * mse(gss(im5), gss(stars)) + 6 * mse(gss(im6), gss(stars))
             logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Loss: {loss.item()}')
 
         th.save({
