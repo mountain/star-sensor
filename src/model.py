@@ -7,8 +7,9 @@ import torch.nn as nn
 from unet.base import Swish
 from unet.qunet import QUNet, QBasic
 from qnn.quaternion_layers import QuaternionLinear
-from qnn.quaternion_ops import q_normalize
+from qnn.quaternion_ops import q_normalize, hamilton_product
 from sky import Skyview, cast
+from plotter import plot
 
 
 class Gaussian(nn.Module):
@@ -49,20 +50,37 @@ class ControlModel(nn.Module):
             factors=np.array([1, 1, 1, 1]),
         )
         self.fc = QuaternionLinear(4 * 512 * 512, 4)
+        self.one = cast(np.array([[1, 0, 0, 0]], dtype=np.float32))
+        self.one.requires_grad = False
+        self.init = self.skyview(self.one).view(1, 1, 512, 512)
+        self.init.requires_grad = False
 
     def forward(self, x):
         batch = x.size()[0]
 
-        sk = self.skyview(cast(np.zeros([batch, 4]))).view(batch, 1, 512, 512)
-        im = self.unet(th.cat((x, sk), dim=1))
-        qs = q_normalize(self.fc(im.view(batch, -1))).view(batch, 4)
+        q1 = q_normalize(self.fc(self.unet(th.cat((x, self.init), dim=1)).view(batch, -1))).view(batch, 4)
+        qa = q1
+        sk = self.skyview(qa).view(batch, 1, 512, 512)
+        plot(open('1.png', mode='wb'), sk.detach().numpy().reshape(512, 512))
 
-        sk = self.skyview(qs).view(batch, 1, 512, 512)
-        im = self.unet(th.cat((x, sk), dim=1))
-        qs = q_normalize(self.fc(im.view(batch, -1))).view(batch, 4)
+        q2 = q_normalize(self.fc(self.unet(th.cat((x, sk), dim=1)).view(batch, -1))).view(batch, 4)
+        qa = hamilton_product(q2, qa)
+        sk = self.skyview(qa).view(batch, 1, 512, 512)
+        plot(open('2.png', mode='wb'), sk.detach().numpy().reshape(512, 512))
 
-        sk = self.skyview(qs).view(batch, 1, 512, 512)
-        im = self.unet(th.cat((x, sk), dim=1))
-        qs = q_normalize(self.fc(im.view(batch, -1))).view(batch, 4)
+        q3 = q_normalize(self.fc(self.unet(th.cat((x, sk), dim=1)).view(batch, -1))).view(batch, 4)
+        qa = hamilton_product(q3, qa)
+        sk = self.skyview(qa).view(batch, 1, 512, 512)
+        plot(open('3.png', mode='wb'), sk.detach().numpy().reshape(512, 512))
 
-        return self.skyview(qs)
+        q4 = q_normalize(self.fc(self.unet(th.cat((x, sk), dim=1)).view(batch, -1))).view(batch, 4)
+        qa = hamilton_product(q4, qa)
+        sk = self.skyview(qa).view(batch, 1, 512, 512)
+        plot(open('4.png', mode='wb'), sk.detach().numpy().reshape(512, 512))
+
+        q5 = q_normalize(self.fc(self.unet(th.cat((x, sk), dim=1)).view(batch, -1))).view(batch, 4)
+        qa = hamilton_product(q5, qa)
+        sk = self.skyview(qa).view(batch, 1, 512, 512)
+        plot(open('5.png', mode='wb'), sk.detach().numpy().reshape(512, 512))
+
+        return sk, qa

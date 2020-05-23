@@ -9,8 +9,11 @@ from skyfield.api import Star
 
 from stars import bright_stars_count, filtered, get_time
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
-device = th.device('cuda')
+if th.cuda.is_available():
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+    device = th.device('cuda')
+else:
+    device = th.device('cpu')
 
 hwin = 0.5
 win = 2 * hwin
@@ -85,6 +88,10 @@ def rotate_frames(rot, frames):
     frames = th.bmm(frames, transz)
 
     return frames.view(-1, 3, 1, 3)
+
+
+def plateu(val):
+    return 1 / ((th.exp(10 * val - 5) + 1) * (th.exp(-10 * val - 5) + 1))
 
 
 class Gaussian(nn.Module):
@@ -233,6 +240,8 @@ class Skyview(nn.Module):
             self.magnitude_map[batchsize] = ms.expand(batchsize, -1, -1, -1)
         mags = self.magnitude_map[batchsize]
 
+        print('points', points.requires_grad)
+
         uxs, uys, uzs = points[:, :, 0], points[:, :, 1], points[:, :, 2]  # size(batchsize, bright_stars_count, 1)
 
         # Orthographic
@@ -247,7 +256,10 @@ class Skyview(nn.Module):
         # Stereographic
         xs = uzs / (1 + uxs)
         ys = uys / (1 + uxs)
-        filtered = ((th.abs(xs) < hwin) * (th.abs(ys) < hwin)).view(batchsize, bright_stars_count, 1, 1)
+        print('xs', xs.requires_grad)
+        print('ys', ys.requires_grad)
+        filtered = (plateu(xs) * plateu(ys)).view(batchsize, bright_stars_count, 1, 1)
+        print('filtered', filtered.requires_grad)
 
         ix = (256 + (256 * window(xs))).long().view(batchsize * bright_stars_count)
         iy = (256 + (256 * window(ys))).long().view(batchsize * bright_stars_count)
@@ -259,6 +271,7 @@ class Skyview(nn.Module):
         background = background.view(batchsize, bright_stars_count, 512, 512)
         background.requires_grad = False
         field = th.sum(filtered.float() * background, dim=1, keepdim=True)
+        print('field', field.requires_grad)
 
         return self.gaussian(field)
 
@@ -267,5 +280,6 @@ class Skyview(nn.Module):
         transfer = self.q2rot(qs) # size(batch, 3, 3)
         sphere = rotate_points(transfer, sphere)
         sky = self.mk_sky(sphere).view(512, 512)
+        print('sky', sky.requires_grad)
 
         return sky
