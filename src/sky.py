@@ -224,6 +224,9 @@ class Skyview(nn.Module):
     def mk_sky(self, points):
         batchsize = points.size()[0]
 
+        if batchsize not in self.magnitude_map:
+            ms = self.magnitude_map[1]
+            self.magnitude_map[batchsize] = ms.expand(batchsize, -1, -1, -1)
         mags = self.magnitude_map[batchsize]
 
         uxs, uys, uzs = points[:, :, 0], points[:, :, 1], points[:, :, 2]  # size(batchsize, bright_stars_count, 1)
