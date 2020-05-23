@@ -61,26 +61,21 @@ class ControlModel(nn.Module):
         q1 = q_normalize(self.fc(self.unet(th.cat((x, self.init), dim=1)).view(batch, -1))).view(batch, 4)
         qa = q1
         sk = self.skyview(qa).view(batch, 1, 512, 512)
-        plot(open('1.png', mode='wb'), sk.detach().numpy().reshape(512, 512))
 
         q2 = q_normalize(self.fc(self.unet(th.cat((x, sk), dim=1)).view(batch, -1))).view(batch, 4)
         qa = hamilton_product(q2, qa)
         sk = self.skyview(qa).view(batch, 1, 512, 512)
-        plot(open('2.png', mode='wb'), sk.detach().numpy().reshape(512, 512))
 
         q3 = q_normalize(self.fc(self.unet(th.cat((x, sk), dim=1)).view(batch, -1))).view(batch, 4)
         qa = hamilton_product(q3, qa)
         sk = self.skyview(qa).view(batch, 1, 512, 512)
-        plot(open('3.png', mode='wb'), sk.detach().numpy().reshape(512, 512))
 
         q4 = q_normalize(self.fc(self.unet(th.cat((x, sk), dim=1)).view(batch, -1))).view(batch, 4)
         qa = hamilton_product(q4, qa)
         sk = self.skyview(qa).view(batch, 1, 512, 512)
-        plot(open('4.png', mode='wb'), sk.detach().numpy().reshape(512, 512))
 
         q5 = q_normalize(self.fc(self.unet(th.cat((x, sk), dim=1)).view(batch, -1))).view(batch, 4)
         qa = hamilton_product(q5, qa)
         sk = self.skyview(qa).view(batch, 1, 512, 512)
-        plot(open('5.png', mode='wb'), sk.detach().numpy().reshape(512, 512))
 
         return sk, qa

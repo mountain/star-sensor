@@ -256,10 +256,7 @@ class Skyview(nn.Module):
         # Stereographic
         xs = uzs / (1 + uxs)
         ys = uys / (1 + uxs)
-        print('xs', xs.requires_grad)
-        print('ys', ys.requires_grad)
         filtered = (plateu(xs) * plateu(ys)).view(batchsize, bright_stars_count, 1, 1)
-        print('filtered', filtered.requires_grad)
 
         ix = (256 + (256 * window(xs))).long().view(batchsize * bright_stars_count)
         iy = (256 + (256 * window(ys))).long().view(batchsize * bright_stars_count)
@@ -271,7 +268,6 @@ class Skyview(nn.Module):
         background = background.view(batchsize, bright_stars_count, 512, 512)
         background.requires_grad = False
         field = th.sum(filtered.float() * background, dim=1, keepdim=True)
-        print('field', field.requires_grad)
 
         return self.gaussian(field)
 
@@ -280,6 +276,5 @@ class Skyview(nn.Module):
         transfer = self.q2rot(qs) # size(batch, 3, 3)
         sphere = rotate_points(transfer, sphere)
         sky = self.mk_sky(sphere).view(512, 512)
-        print('sky', sky.requires_grad)
 
         return sky
