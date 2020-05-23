@@ -51,6 +51,24 @@ def xyz3(az, alt):
     return th.cat([ux, uy, uz], dim=1)
 
 
+def quaternion(theta, phi, alpha):
+    ux = np.cos(phi) * np.cos(theta)
+    uy = np.cos(phi) * np.sin(theta)
+    uz = np.sin(phi)
+
+    a = np.cos(alpha / 2)        # size(batch)
+    b = np.sin(alpha / 2) * ux   # size(batch)
+    c = np.sin(alpha / 2) * uy   # size(batch)
+    d = np.sin(alpha / 2) * uz   # size(batch)
+
+    a = a.reshape(-1, 1, 1, 1)
+    b = b.reshape(-1, 1, 1, 1)
+    c = c.reshape(-1, 1, 1, 1)
+    d = d.reshape(-1, 1, 1, 1)
+
+    return cast(np.concatenate((a, b, c, d), axis=1))
+
+
 def quaternion2(ux, uy, uz, theta):
     a = th.cos(theta / 2)        # size(batch)
     b = th.sin(theta / 2) * ux   # size(batch)
@@ -200,20 +218,9 @@ class Skyview(nn.Module):
 
         return rot.view(-1, 3, 3)
 
-    def sphere(self, lat, lng, tms):
-        gmst = get_time(tms).gmst
-
-        latr = cast([lat / 180 * np.pi])
-        lngr = cast([lng / 180.0 * np.pi])
-
-        hars = (- self.ras + gmst) * 15 / 180.0 * np.pi + lngr
-
-        xs = th.cos(hars) * th.cos(self.decs) * th.cos(latr) + th.sin(self.decs) * th.sin(latr)
-        ys = th.sin(hars) * th.cos(self.decs)
-        azs = th.atan2(xs, ys)
-        alts = th.asin(th.sin(self.decs) * th.cos(latr) - th.cos(hars) * th.cos(self.decs) * th.sin(latr))
-
-        sphere = xyz3(azs, alts).view(1, bright_stars_count, 3, 1)  # size(1, bright_stars_count, 3, 1)
+    def sphere(self):
+        hars = - self.ras * 15 / 180.0 * np.pi
+        sphere = xyz3(hars, self.decs).view(1, bright_stars_count, 3, 1)  # size(1, bright_stars_count, 3, 1)
 
         return sphere
 
@@ -273,7 +280,7 @@ class Skyview(nn.Module):
         return self.gaussian(field)
 
     def forward(self, qs):
-        sphere = self.sphere(0.0, 0.0, 0.0) # size(1, bright_stars_count, 3, 1)
+        sphere = self.sphere() # size(1, bright_stars_count, 3, 1)
         transfer = self.q2rot(qs) # size(batch, 3, 3)
         sphere = rotate_points(transfer, sphere)
         sky = self.mk_sky(sphere).view(512, 512)

@@ -12,7 +12,7 @@ from pathlib import Path
 from torch.utils.data import DataLoader
 
 from model import ControlModel, Gaussian
-from data_loader import StarDataset, Dataset4Preloader
+from data_loader import StarDataset
 from plotter import plot
 
 
@@ -35,14 +35,9 @@ fileHandler = logging.FileHandler(log_file)
 fileHandler.setFormatter(logFormatter)
 logger.addHandler(fileHandler)
 
-dataset_train = StarDataset('train.csv', '/mnt/data02/mingli')
-dataset_test = StarDataset('test.csv', '/mnt/data02/mingli')
-#dataset_train = StarDataset('train.local.csv', '.')
-#dataset_test = StarDataset('test.local.csv', '.')
-
-dataset_train = Dataset4Preloader(DataLoader(dataset_train, batch_size=1, shuffle=False, num_workers=64), 'train')
+dataset_train = StarDataset(32)
+dataset_test = StarDataset(8)
 dataloader_train = DataLoader(dataset_train, batch_size=1, shuffle=True, num_workers=64)
-dataset_test = Dataset4Preloader(DataLoader(dataset_test, batch_size=1, shuffle=False, num_workers=64), 'test')
 dataloader_test = DataLoader(dataset_test, batch_size=1, shuffle=True, num_workers=64)
 
 
