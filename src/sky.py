@@ -243,8 +243,6 @@ class Skyview(nn.Module):
             self.magnitude_map[batchsize] = ms.expand(batchsize, -1, -1, -1)
         mags = self.magnitude_map[batchsize]
 
-        print('points', points.requires_grad)
-
         uxs, uys, uzs = points[:, :, 0], points[:, :, 1], points[:, :, 2]  # size(batchsize, bright_stars_count, 1)
 
         # Orthographic
