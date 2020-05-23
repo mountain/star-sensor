@@ -60,14 +60,14 @@ class ControlModel(nn.Module):
 
         q1 = q_normalize(self.fc(self.unet(th.cat((x, self.init), dim=1)).view(batch, -1))).view(batch, 4)
         qa = q1
-        sk = self.skyview(qa).view(batch, 1, 512, 512)
+        s1 = self.skyview(qa).view(batch, 1, 512, 512)
 
-        q2 = q_normalize(self.fc(self.unet(th.cat((x, sk), dim=1)).view(batch, -1))).view(batch, 4)
+        q2 = q_normalize(self.fc(self.unet(th.cat((x, s1), dim=1)).view(batch, -1))).view(batch, 4)
         qa = hamilton_product(q2, qa)
-        sk = self.skyview(qa).view(batch, 1, 512, 512)
+        s2 = self.skyview(qa).view(batch, 1, 512, 512)
 
-        q3 = q_normalize(self.fc(self.unet(th.cat((x, sk), dim=1)).view(batch, -1))).view(batch, 4)
+        q3 = q_normalize(self.fc(self.unet(th.cat((x, s2), dim=1)).view(batch, -1))).view(batch, 4)
         qa = hamilton_product(q3, qa)
-        sk = self.skyview(qa).view(batch, 1, 512, 512)
+        s3 = self.skyview(qa).view(batch, 1, 512, 512)
 
-        return sk, qa
+        return s1, s2, s3, qa
