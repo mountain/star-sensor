@@ -52,27 +52,27 @@ class ControlModel(nn.Module):
     def forward(self, x):
         batch = x.size()[0]
 
-        q1 = q_normalize(self.net(th.cat((x, self.init, self.init), dim=1).view(batch, -1))).view(batch, 4)
+        q1 = q_normalize(self.net(th.cat((x, self.init, self.init), dim=1)).view(batch, 4))
         qa = q1
         s1 = self.skyview(qa).view(batch, 1, 512, 512)
 
-        q2 = q_normalize(self.net(th.cat((x, s1, self.init), dim=1).view(batch, -1))).view(batch, 4)
+        q2 = q_normalize(self.net(th.cat((x, s1, self.init), dim=1)).view(batch, 4))
         qa = q_normalize(hamilton_product(q2, qa))
         s2 = self.skyview(qa).view(batch, 1, 512, 512)
 
-        q3 = q_normalize(self.net(th.cat((x, s2, s1), dim=1).view(batch, -1))).view(batch, 4)
+        q3 = q_normalize(self.net(th.cat((x, s2, s1), dim=1)).view(batch, 4))
         qa = q_normalize(hamilton_product(q3, qa))
         s3 = self.skyview(qa).view(batch, 1, 512, 512)
 
-        q4 = q_normalize(self.net(th.cat((x, s3, s2), dim=1).view(batch, -1))).view(batch, 4)
+        q4 = q_normalize(self.net(th.cat((x, s3, s2), dim=1)).view(batch, 4))
         qa = q_normalize(hamilton_product(q4, qa))
         s4 = self.skyview(qa).view(batch, 1, 512, 512)
 
-        q5 = q_normalize(self.net(th.cat((x, s4, s3), dim=1).view(batch, -1))).view(batch, 4)
+        q5 = q_normalize(self.net(th.cat((x, s4, s3), dim=1)).view(batch, 4))
         qa = q_normalize(hamilton_product(q5, qa))
         s5 = self.skyview(qa).view(batch, 1, 512, 512)
 
-        q6 = q_normalize(self.unet(th.cat((x, s5, s4), dim=1).view(batch, -1))).view(batch, 4)
+        q6 = q_normalize(self.net(th.cat((x, s5, s4), dim=1)).view(batch, 4))
         qa = q_normalize(hamilton_product(q6, qa))
         s6 = self.skyview(qa).view(batch, 1, 512, 512)
 
