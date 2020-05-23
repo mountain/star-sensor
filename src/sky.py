@@ -171,6 +171,10 @@ class Skyview(nn.Module):
 
     def q2rot(self, q):
         a, b, c, d = q[:, 0:1], q[:, 1:2], q[:, 2:3], q[:, 3:4]
+        a = a.view(-1, 1, 1, 1)
+        b = b.view(-1, 1, 1, 1)
+        c = c.view(-1, 1, 1, 1)
+        d = d.view(-1, 1, 1, 1)
 
         rot = (a * a + b * b - c * c - d * d) * self.t00 + (2 * (b * c - a * d)) * self.t01 + (2 * (b * d + a * c)) * self.t02 \
               + (2 * (b * c + a * d)) * self.t10 + (a * a + c * c - b * b - d * d) * self.t11 + (2 * (c * d - a * b)) * self.t12 \
