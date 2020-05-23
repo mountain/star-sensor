@@ -55,7 +55,7 @@ def train_model():
         mdl.train()
         dataloader = dataloader_train
         for step, sample in enumerate(dataloader):
-            stars = torch.FloatTensor(sample['stars'])
+            stars = torch.FloatTensor(sample['stars']).view(-1, 1, 512, 512)
             stars = stars.cuda()
 
             ims = mdl(stars)
@@ -69,7 +69,7 @@ def train_model():
         mdl.eval()
         dataloader = dataloader_test
         for step, sample in enumerate(dataloader):
-            stars = torch.FloatTensor(sample['stars'])
+            stars = torch.FloatTensor(sample['stars']).view(-1, 1, 512, 512)
             stars = stars.cuda()
 
             ims = mdl(stars)
