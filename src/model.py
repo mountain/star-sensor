@@ -70,12 +70,4 @@ class ControlModel(nn.Module):
         qa = hamilton_product(q3, qa)
         sk = self.skyview(qa).view(batch, 1, 512, 512)
 
-        q4 = q_normalize(self.fc(self.unet(th.cat((x, sk), dim=1)).view(batch, -1))).view(batch, 4)
-        qa = hamilton_product(q4, qa)
-        sk = self.skyview(qa).view(batch, 1, 512, 512)
-
-        q5 = q_normalize(self.fc(self.unet(th.cat((x, sk), dim=1)).view(batch, -1))).view(batch, 4)
-        qa = hamilton_product(q5, qa)
-        sk = self.skyview(qa).view(batch, 1, 512, 512)
-
         return sk, qa
