@@ -30,7 +30,7 @@ decm_solstice = Star(ra_hours=18, dec_degrees=0.0)
 
 ts = load.timescale()
 
-filtered = df[df['magnitude'] < 4.0]
+filtered = df[df['magnitude'] < 5.0]
 filtered = filtered[filtered['ra_degrees'].notnull()]
 filtered = filtered[filtered['dec_degrees'].notnull()]
 bright_stars_count = len(filtered)
