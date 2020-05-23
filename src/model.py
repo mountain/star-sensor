@@ -52,16 +52,17 @@ class ControlModel(nn.Module):
         self.fc = QuaternionLinear(512 * 512, 4)
 
     def forward(self, x):
-        sk = self.skyview(cast(np.zeros([x.size()[0], 4])))
+        batch = x.size()[0]
+        sk = self.skyview(cast(np.zeros([batch, 4])))
         im = self.unet(th.cat((x, sk), dim=1))
-        qs = q_normalize(self.fc(im.view(*im.size()[:2], -1))).view(x.size()[0], -1, 3, 3)
+        qs = q_normalize(self.fc(im.view(*im.size()[:2], -1))).view(batch, 4)
 
         sk = self.skyview(qs)
         im = self.unet(th.cat((x, sk), dim=1))
-        qs = q_normalize(self.fc(im.view(*im.size()[:2], -1))).view(x.size()[0], -1, 3, 3)
+        qs = q_normalize(self.fc(im.view(*im.size()[:2], -1))).view(batch, 4)
 
         sk = self.skyview(qs)
         im = self.unet(th.cat((x, sk), dim=1))
-        qs = q_normalize(self.fc(im.view(*im.size()[:2], -1))).view(x.size()[0], -1, 3, 3)
+        qs = q_normalize(self.fc(im.view(*im.size()[:2], -1))).view(batch, 4)
 
         return self.skyview(qs)
