@@ -59,7 +59,7 @@ def train_model():
             stars = stars.cuda()
 
             ims = mdl(stars)
-            loss = mse(ims, stars)
+            loss = mse(stars, ims)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
