@@ -67,9 +67,10 @@ def window(coord):
 
 
 def rotate_points(rot, points):
-    points = points.view(-1, 3, 1)
-
+    points = points.view(-1, 1, 3, 1)
     rot = rot.view(-1, 1, 3, 3)
+
+    points = points.expand(-1, rot.size()[0], -1, -1).view(-1, 3, 1)
     transz = rot.expand(-1, bright_stars_count, -1, -1).view(-1, 3, 3)
     points = th.bmm(transz, points)
 
@@ -254,8 +255,8 @@ class Skyview(nn.Module):
         return self.gaussian(field)
 
     def forward(self, qs):
-        sphere = self.sphere(0.0, 0.0, 0.0)
-        transfer = self.q2rot(qs)
+        sphere = self.sphere(0.0, 0.0, 0.0) # size(1, bright_stars_count, 3, 1)
+        transfer = self.q2rot(qs) # size(batch, 3, 3)
 
         sphere = rotate_points(transfer, sphere)
         sky = self.mk_sky(sphere).view(512, 512)
