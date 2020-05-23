@@ -24,7 +24,7 @@ class StarDataset(Dataset):
         alpha = np.random.random(1) * np.pi * 2
         qs = quaternion(theta, phi, alpha)
         view = self.sky(qs)
-        view = view.reshape(1, 512, 512)
+        view = view.reshape(1, 512, 512).detach().cpu().numpy()
         sample = {'stars': view, 'theta': theta, 'phi': phi, 'alpha': alpha}
 
         return sample
