@@ -254,7 +254,7 @@ class Skyview(nn.Module):
         ix = (ix * (ix < 512).long() + 511 * (ix > 511).long()) * (ix >= 0).long()
         iy = (iy * (iy < 512).long() + 511 * (iy > 511).long()) * (iy >= 0).long()
 
-        background = th.cat([self.background.clone() for _ in range(batchsize)], dim=0)
+        background = self.background.view(1, -1, -1, -1).expand(batchsize, -1, -1, -1)
         background[:, ix, iy] = th.diag(mags.view(batchsize * bright_stars_count))
         background = background.view(batchsize, bright_stars_count, 512, 512)
         field = th.sum(filtered.float() * background, dim=1, keepdim=True)
