@@ -53,39 +53,30 @@ class ControlModel(nn.Module):
         batch = x.size()[0]
 
         q1 = q_normalize(self.net(th.cat((x, self.init, self.init), dim=1)).view(batch, 4))
-        qa = q1
-        s1 = self.skyview(qa).view(batch, 1, 512, 512)
+        s1 = self.skyview(q1).view(batch, 1, 512, 512)
 
         q2 = q_normalize(self.net(th.cat((x, s1, self.init), dim=1)).view(batch, 4))
-        qa = q_normalize(hamilton_product(q2, qa))
-        s2 = self.skyview(qa).view(batch, 1, 512, 512)
+        s2 = self.skyview(q2).view(batch, 1, 512, 512)
 
         q3 = q_normalize(self.net(th.cat((x, s2, s1), dim=1)).view(batch, 4))
-        qa = q_normalize(hamilton_product(q3, qa))
-        s3 = self.skyview(qa).view(batch, 1, 512, 512)
+        s3 = self.skyview(q3).view(batch, 1, 512, 512)
 
         q4 = q_normalize(self.net(th.cat((x, s3, s2), dim=1)).view(batch, 4))
-        qa = q_normalize(hamilton_product(q4, qa))
-        s4 = self.skyview(qa).view(batch, 1, 512, 512)
+        s4 = self.skyview(q4).view(batch, 1, 512, 512)
 
         q5 = q_normalize(self.net(th.cat((x, s4, s3), dim=1)).view(batch, 4))
-        qa = q_normalize(hamilton_product(q5, qa))
-        s5 = self.skyview(qa).view(batch, 1, 512, 512)
+        s5 = self.skyview(q5).view(batch, 1, 512, 512)
 
         q6 = q_normalize(self.net(th.cat((x, s5, s4), dim=1)).view(batch, 4))
-        qa = q_normalize(hamilton_product(q6, qa))
-        s6 = self.skyview(qa).view(batch, 1, 512, 512)
+        s6 = self.skyview(q6).view(batch, 1, 512, 512)
 
         q7 = q_normalize(self.net(th.cat((x, s6, s5), dim=1)).view(batch, 4))
-        qa = q_normalize(hamilton_product(q7, qa))
-        s7 = self.skyview(qa).view(batch, 1, 512, 512)
+        s7 = self.skyview(q7).view(batch, 1, 512, 512)
 
         q8 = q_normalize(self.net(th.cat((x, s7, s6), dim=1)).view(batch, 4))
-        qa = q_normalize(hamilton_product(q8, qa))
-        s8 = self.skyview(qa).view(batch, 1, 512, 512)
+        s8 = self.skyview(q8).view(batch, 1, 512, 512)
 
         q9 = q_normalize(self.net(th.cat((x, s8, s7), dim=1)).view(batch, 4))
-        qa = q_normalize(hamilton_product(q9, qa))
-        s9 = self.skyview(qa).view(batch, 1, 512, 512)
+        s9 = self.skyview(q9).view(batch, 1, 512, 512)
 
         return s1, s2, s3, s4, s5, s6, s7, s8, s9, qa
