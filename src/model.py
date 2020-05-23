@@ -79,4 +79,4 @@ class ControlModel(nn.Module):
         q9 = q_normalize(self.net(th.cat((x, s8, s7), dim=1)).view(batch, 4))
         s9 = self.skyview(q9).view(batch, 1, 512, 512)
 
-        return s1, s2, s3, s4, s5, s6, s7, s8, s9, qa
+        return s1, s2, s3, s4, s5, s6, s7, s8, s9, q9
