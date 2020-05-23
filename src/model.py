@@ -62,23 +62,23 @@ class ControlModel(nn.Module):
         s1 = self.skyview(qa).view(batch, 1, 512, 512)
 
         q2 = q_normalize(self.fc(self.unet(th.cat((x, s1), dim=1)).view(batch, -1))).view(batch, 4)
-        qa = hamilton_product(q2, qa)
+        qa = q_normalize(hamilton_product(q2, qa))
         s2 = self.skyview(qa).view(batch, 1, 512, 512)
 
         q3 = q_normalize(self.fc(self.unet(th.cat((x, s2), dim=1)).view(batch, -1))).view(batch, 4)
-        qa = hamilton_product(q3, qa)
+        qa = q_normalize(hamilton_product(q3, qa))
         s3 = self.skyview(qa).view(batch, 1, 512, 512)
 
         q4 = q_normalize(self.fc(self.unet(th.cat((x, s2), dim=1)).view(batch, -1))).view(batch, 4)
-        qa = hamilton_product(q4, qa)
+        qa = q_normalize(hamilton_product(q4, qa))
         s4 = self.skyview(qa).view(batch, 1, 512, 512)
 
         q5 = q_normalize(self.fc(self.unet(th.cat((x, s2), dim=1)).view(batch, -1))).view(batch, 4)
-        qa = hamilton_product(q5, qa)
+        qa = q_normalize(hamilton_product(q5, qa))
         s5 = self.skyview(qa).view(batch, 1, 512, 512)
 
         q6 = q_normalize(self.fc(self.unet(th.cat((x, s2), dim=1)).view(batch, -1))).view(batch, 4)
-        qa = hamilton_product(q6, qa)
+        qa = q_normalize(hamilton_product(q6, qa))
         s6 = self.skyview(qa).view(batch, 1, 512, 512)
 
         return s1, s2, s3, s4, s5, s6, qa
