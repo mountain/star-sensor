@@ -35,10 +35,10 @@ fileHandler = logging.FileHandler(log_file)
 fileHandler.setFormatter(logFormatter)
 logger.addHandler(fileHandler)
 
-dataset_train = StarDataset('train.csv', '/mnt/data02/mingli')
-dataset_test = StarDataset('test.csv', '/mnt/data02/mingli')
-#dataset_train = StarDataset('train.local.csv', '.')
-#dataset_test = StarDataset('test.local.csv', '.')
+#dataset_train = StarDataset('train.csv', '/mnt/data02/mingli')
+#dataset_test = StarDataset('test.csv', '/mnt/data02/mingli')
+dataset_train = StarDataset('train.local.csv', '.')
+dataset_test = StarDataset('test.local.csv', '.')
 
 dataset_train = Dataset4Preloader(DataLoader(dataset_train, batch_size=1, shuffle=False, num_workers=64), 'train')
 dataloader_train = DataLoader(dataset_train, batch_size=1, shuffle=True, num_workers=64)
@@ -68,8 +68,8 @@ def train_model():
                 stars = stars.cuda()
 
             im1, im2, im3, im4, im5, im6, qns = mdl(stars)
-            loss = mse(gss(im1), gss(stars)) + 2 * mse(gss(im2), gss(stars)) + 3 * mse(gss(im3), gss(stars))\
-                   + 4 * mse(gss(im4), gss(stars)) + 5 * mse(gss(im5), gss(stars)) + 6 * mse(gss(im6), gss(stars))
+            loss = mse(gss(8 * im1), gss(stars)) + mse(gss(8 * im2), gss(stars)) + mse(gss(8 * im3), gss(stars))\
+                   + mse(gss(8 * im4), gss(stars)) + mse(gss(8 * im5), gss(stars)) + mse(gss(8 * im6), gss(stars))
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
