@@ -54,6 +54,7 @@ def train_model():
     gss = Gaussian()
     if th.cuda.is_available():
         mdl = mdl.cuda()
+        gss = gss.cuda()
     optimizer = th.optim.AdamW(mdl.parameters(), lr=lr, weight_decay=wd)
     mse = nn.MSELoss()
 
