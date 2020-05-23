@@ -65,7 +65,7 @@ def train_model():
                 q = q.cuda()
 
             im1, im2, im3, im4, im5, im6, im7, im8, im9, qns = mdl(stars)
-            loss = mse(qns, q)
+            loss = mse(qns, q) + mse(gss(im9), stars)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
