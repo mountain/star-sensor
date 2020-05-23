@@ -9,7 +9,6 @@ from unet.qunet import QUNet, QBasic
 from qnn.quaternion_layers import QuaternionLinear
 from qnn.quaternion_ops import q_normalize, hamilton_product
 from sky import Skyview, cast
-from plotter import plot
 
 
 class Gaussian(nn.Module):
