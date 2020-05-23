@@ -76,4 +76,16 @@ class ControlModel(nn.Module):
         qa = q_normalize(hamilton_product(q6, qa))
         s6 = self.skyview(qa).view(batch, 1, 512, 512)
 
-        return s1, s2, s3, s4, s5, s6, qa
+        q7 = q_normalize(self.net(th.cat((x, s6, s5), dim=1)).view(batch, 4))
+        qa = q_normalize(hamilton_product(q7, qa))
+        s7 = self.skyview(qa).view(batch, 1, 512, 512)
+
+        q8 = q_normalize(self.net(th.cat((x, s7, s6), dim=1)).view(batch, 4))
+        qa = q_normalize(hamilton_product(q8, qa))
+        s8 = self.skyview(qa).view(batch, 1, 512, 512)
+
+        q9 = q_normalize(self.net(th.cat((x, s8, s7), dim=1)).view(batch, 4))
+        qa = q_normalize(hamilton_product(q9, qa))
+        s9 = self.skyview(qa).view(batch, 1, 512, 512)
+
+        return s1, s2, s3, s4, s5, s6, s7, s8, s9, qa
