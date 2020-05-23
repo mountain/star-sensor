@@ -49,10 +49,10 @@ class ControlModel(nn.Module):
             scales=np.array([-2, -2, -2, -2]),
             factors=np.array([1, 1, 1, 1]),
         )
-        self.fc = QuaternionLinear(512 * 512, 9)
+        self.fc = QuaternionLinear(512 * 512, 4)
 
     def forward(self, x):
-        sk = self.skyview(cast(np.zeros([x.size()[0], 1, 3, 3])))
+        sk = self.skyview(cast(np.zeros([x.size()[0], 4])))
         im = self.unet(th.cat((x, sk), dim=1))
         qs = q_normalize(self.fc(im.view(*im.size()[:2], -1))).view(x.size()[0], -1, 3, 3)
 

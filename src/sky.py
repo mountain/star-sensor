@@ -256,7 +256,6 @@ class Skyview(nn.Module):
 
     def forward(self, qs):
         print('qs', qs.size())
-
         sphere = self.sphere(0.0, 0.0, 0.0) # size(1, bright_stars_count, 3, 1)
         print('sphere', sphere.size())
         transfer = self.q2rot(qs) # size(batch, 3, 3)
