@@ -104,8 +104,10 @@ def train_model():
                 stars = stars.cuda()
                 q = q.cuda()
 
-            im1, im2, im3, qns = mdl(stars)
-            loss = mse(gss(im3), gss(stars))
+            im1, im2, im3, im4, im5, im6, qns = mdl(stars)
+            ims = th.cat((gss(im4), gss(im5), gss(im6)), dim=1)
+            stars = th.cat((gss(stars), gss(stars), gss(stars)), dim=1)
+            loss = mse(ims, stars) + mse(qns, q)
             logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Loss: {loss.item()}')
             loss_per_epoch += loss.item()
 
