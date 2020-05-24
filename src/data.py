@@ -4,6 +4,7 @@ import numpy as np
 import torch as th
 import healpy as hp
 
+from random import shuffle
 from util.sky import Skyview, quaternion
 from torch.utils.data import Dataset
 
@@ -15,12 +16,13 @@ class StarDataset(Dataset):
         self.sky = Skyview()
         if th.cuda.is_available():
             self.sky = self.sky.cuda()
+        self.idx = shuffle(range(self.size))
 
     def __len__(self):
         return self.size
 
     def __getitem__(self, idx):
-        theta, phi = hp.pix2ang(self.nside, idx, lonlat=False)
+        theta, phi = hp.pix2ang(self.nside, self.idx[idx], lonlat=False)
         alpha = np.random.random(1) * np.pi * 2
         qs = quaternion(theta, phi, alpha)
         view = self.sky(qs)
