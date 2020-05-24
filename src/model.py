@@ -51,7 +51,7 @@ class ControlModel(nn.Module):
         super().__init__()
         self.skyview = Skyview()
 
-        self.net = resnet18(num_classes=4)
+        self.net = resnet18(num_classes=4, norm_layer=nn.InstanceNorm2d)
         self.one = cast(np.array([[1, 0, 0, 0]], dtype=np.float32))
         self.one.requires_grad = False
         self.init = self.skyview(self.one).view(1, 1, 512, 512)
