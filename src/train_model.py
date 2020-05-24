@@ -42,8 +42,8 @@ dataloader_test = DataLoader(dataset_test, batch_size=1, shuffle=True, num_worke
 
 
 def train_model():
-    lr = 0.001
-    wd = 0.0003
+    lr = 0.0001
+    wd = 0.00003
     epochs = 500
     logger.info('lr: {}, wd: {}'.format(lr, wd))
     mdl = ControlModel()
