@@ -60,13 +60,13 @@ class ControlModel(nn.Module):
     def forward(self, x):
         batch = x.size()[0]
 
-        q1 = normalize(self.net(th.cat((x, self.init, self.init), dim=1)).view(batch, 4))
+        q1 = normalize(th.tanh(self.net(th.cat((x, self.init, self.init), dim=1)).view(batch, 4)))
         s1 = self.skyview(q1).view(batch, 1, 512, 512)
 
-        q2 = normalize(self.net(th.cat((x, s1, self.init), dim=1)).view(batch, 4))
+        q2 = normalize(th.tanh(self.net(th.cat((x, s1, self.init), dim=1)).view(batch, 4)))
         s2 = self.skyview(q2).view(batch, 1, 512, 512)
 
-        q3 = normalize(self.net(th.cat((x, s2, s1), dim=1)).view(batch, 4))
+        q3 = normalize(th.tanh(self.net(th.cat((x, s2, s1), dim=1)).view(batch, 4)))
         s3 = self.skyview(q3).view(batch, 1, 512, 512)
 
         return s1, s2, s3, q3
