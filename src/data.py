@@ -16,7 +16,8 @@ class StarDataset(Dataset):
         self.sky = Skyview()
         if th.cuda.is_available():
             self.sky = self.sky.cuda()
-        self.idx = shuffle(list(range(self.size)))
+        self.idx = list(range(self.size))
+        shuffle(self.idx)
 
     def __len__(self):
         return self.size
