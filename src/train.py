@@ -48,7 +48,7 @@ def train_model():
     epochs = 500
     logger.info('lr: {}, wd: {}'.format(lr, wd))
     mdl = ControlModel()
-    gss = Gaussian()
+    gss = Gaussian(5)
     if th.cuda.is_available():
         mdl = mdl.cuda()
         gss = gss.cuda()
