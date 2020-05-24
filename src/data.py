@@ -18,6 +18,9 @@ class StarDataset(Dataset):
             self.sky = self.sky.cuda()
         self.idx = list(range(self.size))
         shuffle(self.idx)
+        print('----------------------------')
+        print('size:', self.size)
+        print('----------------------------')
 
     def __len__(self):
         return self.size
