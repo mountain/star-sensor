@@ -36,15 +36,15 @@ fileHandler = logging.FileHandler(log_file)
 fileHandler.setFormatter(logFormatter)
 logger.addHandler(fileHandler)
 
-dataset_train = StarDataset(32)
+dataset_train = StarDataset(16)
 dataset_test = StarDataset(8)
 dataloader_train = DataLoader(dataset_train, batch_size=1, shuffle=True, num_workers=0)
 dataloader_test = DataLoader(dataset_test, batch_size=1, shuffle=True, num_workers=0)
 
 
 def train_model():
-    lr = 0.000001
-    wd = 0.0000003
+    lr = 0.001
+    wd = 0.01
     epochs = 500
     logger.info('lr: {}, wd: {}'.format(lr, wd))
     mdl = ControlModel()
@@ -58,6 +58,8 @@ def train_model():
     def train(epoch):
         mdl.train()
         dataloader = dataloader_train
+        loss_per_epoch = 0.0
+        loss_per_100 = 0.0
         for step, sample in enumerate(dataloader):
             q = th.FloatTensor(sample['q']).view(-1, 4)
             stars = th.FloatTensor(sample['stars']).view(-1, 1, 512, 512)
@@ -74,17 +76,27 @@ def train_model():
             optimizer.step()
             logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Loss: {loss.item()}')
 
-            if step % 200 == 0:
+            loss_per_100 += loss.item()
+            loss_per_epoch += loss.item()
+
+            if step % 100 == 0:
+                plot(open('0.png', mode='wb'), stars[0, 0].detach().cpu().numpy().reshape(512, 512))
                 plot(open('1.png', mode='wb'), im1.detach().cpu().numpy().reshape(512, 512))
                 plot(open('2.png', mode='wb'), im2.detach().cpu().numpy().reshape(512, 512))
                 plot(open('3.png', mode='wb'), im3.detach().cpu().numpy().reshape(512, 512))
                 plot(open('4.png', mode='wb'), im4.detach().cpu().numpy().reshape(512, 512))
                 plot(open('5.png', mode='wb'), im5.detach().cpu().numpy().reshape(512, 512))
                 plot(open('6.png', mode='wb'), im6.detach().cpu().numpy().reshape(512, 512))
+            if step % 100 == 0:
+                logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Loss per 1000: {loss_per_100 / 100.0}')
+                loss_per_100 = 0.0
+
+            logger.info(f'Epoch: {epoch + 1:03d} | Train Loss: {loss_per_epoch / dataloader.dataset.size}')
 
     def test(epoch):
         mdl.eval()
         dataloader = dataloader_test
+        loss_per_epoch = 0.0
         for step, sample in enumerate(dataloader):
             q = th.FloatTensor(sample['q']).view(-1, 4)
             stars = th.FloatTensor(sample['stars']).view(-1, 1, 512, 512)
@@ -95,6 +107,9 @@ def train_model():
             im1, im2, im3, qns = mdl(stars)
             loss = mse(gss(im3), gss(stars))
             logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Loss: {loss.item()}')
+            loss_per_epoch += loss.item()
+
+        logger.info(f'Epoch: {epoch + 1:03d} | Test Loss: {loss_per_epoch / dataloader.dataset.size}')
 
         th.save({
             'net': mdl.state_dict(),
