@@ -36,8 +36,8 @@ fileHandler = logging.FileHandler(log_file)
 fileHandler.setFormatter(logFormatter)
 logger.addHandler(fileHandler)
 
-dataset_train = StarDataset(16)
-dataset_test = StarDataset(8)
+dataset_train = StarDataset(1000)
+dataset_test = StarDataset(100)
 dataloader_train = DataLoader(dataset_train, batch_size=1, shuffle=True, num_workers=0)
 dataloader_test = DataLoader(dataset_test, batch_size=1, shuffle=True, num_workers=0)
 
