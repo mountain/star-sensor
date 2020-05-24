@@ -70,11 +70,15 @@ def train_model():
             im1, im2, im3, im4, im5, im6, qns = mdl(stars)
             ims = th.cat((gss(im4), gss(im5), gss(im6)), dim=1)
             sts = th.cat((gss(stars), gss(stars), gss(stars)), dim=1)
-            loss = mse(ims, sts) + mse(qns, q)
+            sloss = mse(ims, sts) * 512 * 512
+            qloss = mse(qns, q)
+            loss = sloss + qloss
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
             logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Loss: {loss.item()}')
+            logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | SLoss: {sloss.item()}')
+            logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | QLoss: {qloss.item()}')
 
             loss_per_100 += loss.item()
             loss_per_epoch += loss.item()
@@ -106,8 +110,10 @@ def train_model():
 
             im1, im2, im3, im4, im5, im6, qns = mdl(stars)
             ims = th.cat((gss(im4), gss(im5), gss(im6)), dim=1)
-            stars = th.cat((gss(stars), gss(stars), gss(stars)), dim=1)
-            loss = mse(ims, stars) + mse(qns, q)
+            sts = th.cat((gss(stars), gss(stars), gss(stars)), dim=1)
+            sloss = mse(ims, sts) * 512 * 512
+            qloss = mse(qns, q)
+            loss = sloss + qloss
             logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Loss: {loss.item()}')
             loss_per_epoch += loss.item()
 
