@@ -11,8 +11,9 @@ import torch.nn as nn
 from pathlib import Path
 from torch.utils.data import DataLoader
 
-from model import ControlModel, Gaussian
-from data_loader import StarDataset
+from model import ControlModel
+from data import StarDataset
+from util.gauss import Gaussian
 from util.plotter import plot
 
 
