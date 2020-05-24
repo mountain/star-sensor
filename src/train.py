@@ -73,7 +73,7 @@ def train_model():
             optimizer.step()
             logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Loss: {loss.item()}')
 
-            if step % 50 == 0:
+            if step % 200 == 0:
                 plot(open('1.png', mode='wb'), im1.detach().cpu().numpy().reshape(512, 512))
                 plot(open('2.png', mode='wb'), im2.detach().cpu().numpy().reshape(512, 512))
                 plot(open('3.png', mode='wb'), im3.detach().cpu().numpy().reshape(512, 512))
