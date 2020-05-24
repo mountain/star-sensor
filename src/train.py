@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader
 
 from model import ControlModel, Gaussian
 from data_loader import StarDataset
-from plotter import plot
+from util.plotter import plot
 
 
 print('cudnn:', th.backends.cudnn.version())

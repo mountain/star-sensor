@@ -7,7 +7,8 @@ import torch.nn as nn
 
 from skyfield.api import Star
 
-from stars import bright_stars_count, filtered, get_time
+from util.stars import bright_stars_count, filtered
+from util.gauss import Gaussian
 
 if th.cuda.is_available():
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
@@ -109,36 +110,7 @@ def rotate_frames(rot, frames):
 
 
 def plateu(val):
-    return 1 / ((th.exp(10 * val - 5) + 1) * (th.exp(-10 * val - 5) + 1))
-
-
-class Gaussian(nn.Module):
-    def __init__(self):
-        super(Gaussian, self).__init__()
-        kernel_size = 3
-        sigma = 6
-        x_cord = th.arange(kernel_size)
-        if th.cuda.is_available():
-            x_cord = x_cord.cuda()
-
-        x_grid = x_cord.repeat(kernel_size).view(kernel_size, kernel_size)
-        y_grid = x_grid.t()
-        xy_grid = th.stack([x_grid, y_grid], dim=-1)
-        mean = (kernel_size - 1) / 2.
-        variance = sigma ** 2.
-        gaussian_kernel = (1. / (2. * np.pi * variance)) * th.exp((-th.sum((xy_grid - mean)**2., dim=-1) / (2 * variance)).float())
-        gaussian_kernel = gaussian_kernel / th.sum(gaussian_kernel)
-        gaussian_kernel = gaussian_kernel.view(1, 1, kernel_size, kernel_size)
-        gaussian_kernel = gaussian_kernel.repeat(1, 1, 1, 1)
-
-        gaussian = nn.Conv2d(1, 1, kernel_size=kernel_size, padding=(kernel_size - 1) / 2, bias=False)
-        gaussian.weight.data = gaussian_kernel
-        gaussian.weight.requires_grad = False
-        gaussian.padding = (1, 1)
-        self.op = gaussian
-
-    def forward(self, *input):
-        return self.op(*input)
+    return 1 / ((th.exp(100 * val - 50) + 1) * (th.exp(-100 * val - 50) + 1))
 
 
 class Skyview(nn.Module):
@@ -180,7 +152,7 @@ class Skyview(nn.Module):
 
         self.I = cast(np.eye(3, 3)).view(1, 3, 3)
 
-        self.gaussian = Gaussian()
+        self.gaussian = Gaussian(3)
 
         self.background = th.zeros(bright_stars_count, 512, 512).to(device)
         self.frame = get_init_frame().view(-1, 3, 1, 3)
@@ -253,18 +225,18 @@ class Skyview(nn.Module):
         uxs, uys, uzs = points[:, :, 0], points[:, :, 1], points[:, :, 2]  # size(batchsize, bright_stars_count, 1)
 
         # Orthographic
-        # alps = th.atan2(uys, uxs)
-        # dlts = th.atan2(uzs, th.sqrt(uxs * uxs + uys * uys))
-        #
-        # cs = th.cos(dlts) * th.cos(alps)
-        # xs = th.cos(dlts) * th.sin(alps)
-        # ys = th.sin(dlts)
-        # filtered = ((th.abs(xs) < hwin) * (th.abs(ys) < hwin) * (cs > 0)).view(batchsize, bright_stars_count, 1, 1)
+        alps = th.atan2(uys, uxs)
+        dlts = th.atan2(uzs, th.sqrt(uxs * uxs + uys * uys))
+
+        cs = th.cos(dlts) * th.cos(alps)
+        xs = th.cos(dlts) * th.sin(alps)
+        ys = th.sin(dlts)
+        filtered = (plateu(xs) * plateu(ys) * th.relu(cs)).view(batchsize, bright_stars_count, 1, 1)
 
         # Stereographic
-        xs = uzs / (1 + uxs)
-        ys = uys / (1 + uxs)
-        filtered = (plateu(xs) * plateu(ys)).view(batchsize, bright_stars_count, 1, 1)
+        # xs = uzs / (1 + uxs)
+        # ys = uys / (1 + uxs)
+        # filtered = (plateu(xs) * plateu(ys)).view(batchsize, bright_stars_count, 1, 1)
 
         ix = (256 + (256 * window(xs))).long().view(batchsize * bright_stars_count)
         iy = (256 + (256 * window(ys))).long().view(batchsize * bright_stars_count)

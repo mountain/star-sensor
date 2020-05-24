@@ -4,7 +4,7 @@ import numpy as np
 import torch as th
 import healpy as hp
 
-from sky import Skyview, quaternion
+from util.sky import Skyview, quaternion
 from torch.utils.data import Dataset
 
 
