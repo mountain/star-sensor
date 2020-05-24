@@ -75,9 +75,6 @@ def train_model():
                 plot(open('1.png', mode='wb'), im1.detach().cpu().numpy().reshape(512, 512))
                 plot(open('2.png', mode='wb'), im2.detach().cpu().numpy().reshape(512, 512))
                 plot(open('3.png', mode='wb'), im3.detach().cpu().numpy().reshape(512, 512))
-                plot(open('4.png', mode='wb'), im4.detach().cpu().numpy().reshape(512, 512))
-                plot(open('5.png', mode='wb'), im5.detach().cpu().numpy().reshape(512, 512))
-                plot(open('6.png', mode='wb'), im6.detach().cpu().numpy().reshape(512, 512))
 
     def test(epoch):
         mdl.eval()
