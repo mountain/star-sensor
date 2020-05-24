@@ -87,11 +87,11 @@ def train_model():
                 plot(open('4.png', mode='wb'), im4.detach().cpu().numpy().reshape(512, 512))
                 plot(open('5.png', mode='wb'), im5.detach().cpu().numpy().reshape(512, 512))
                 plot(open('6.png', mode='wb'), im6.detach().cpu().numpy().reshape(512, 512))
-            if step % 100 == 0:
-                logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Loss per 1000: {loss_per_100 / 100.0}')
+
+                logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Loss per 100: {loss_per_100 / 100.0}')
                 loss_per_100 = 0.0
 
-            logger.info(f'Epoch: {epoch + 1:03d} | Train Loss: {loss_per_epoch / dataloader.dataset.size}')
+        logger.info(f'Epoch: {epoch + 1:03d} | Train Loss: {loss_per_epoch / dataloader.dataset.size}')
 
     def test(epoch):
         mdl.eval()
