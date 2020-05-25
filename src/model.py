@@ -276,7 +276,7 @@ class Model(nn.Module):
         qa = q1
         s1 = self.skyview(qa).view(batch, 1, 512, 512)
 
-        q2 = normalize(th.sum(self.locator(th.cat((x, s1, self.init, estimate), dim=1)).view(batch, 4))
+        q2 = normalize(self.locator(th.cat((x, s1, self.init, estimate), dim=1)).view(batch, 4))
         qa = hamilton_product(q2, qa)
         s2 = self.skyview(qa).view(batch, 1, 512, 512)
 
