@@ -42,7 +42,7 @@ class Estimator(nn.Module):
                              "or a 3-element tuple, got {}".format(replace_stride_with_dilation))
         self.groups = groups
         self.base_width = width_per_group
-        self.conv1 = nn.Conv2d(inchannel, self.inplanes, kernel_size=31, stride=2, padding=15,
+        self.conv1 = nn.Conv2d(inchannel, self.inplanes, kernel_size=61, stride=2, padding=30,
                                bias=False)
         self.bn1 = norm_layer(self.inplanes)
         self.relu = nn.ReLU(inplace=True)
@@ -141,7 +141,7 @@ class Locator(nn.Module):
                              "or a 3-element tuple, got {}".format(replace_stride_with_dilation))
         self.groups = groups
         self.base_width = width_per_group
-        self.conv1 = nn.Conv2d(inchannel, self.inplanes, kernel_size=31, stride=2, padding=15,
+        self.conv1 = nn.Conv2d(inchannel, self.inplanes, kernel_size=61, stride=2, padding=30,
                                bias=False)
         self.bn1 = norm_layer(self.inplanes)
         self.relu = nn.ReLU(inplace=True)
