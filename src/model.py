@@ -27,11 +27,11 @@ class Estimator(nn.Module):
         block = BasicBlock
         norm_layer = nn.InstanceNorm2d
         self._norm_layer = norm_layer
-        layers = [16, 16, 16, 16]
-        num_classes = 36
-        inchannel = 37
+        layers = [8, 8, 8, 8]
+        num_classes = 72
+        inchannel = num_classes + 1
 
-        self.inplanes = 64
+        self.inplanes = 144
         self.dilation = 1
         if replace_stride_with_dilation is None:
             # each element in the tuple indicates if we should replace
@@ -47,15 +47,15 @@ class Estimator(nn.Module):
         self.bn1 = norm_layer(self.inplanes)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        self.layer1 = self._make_layer(block, 64, layers[0])
-        self.layer2 = self._make_layer(block, 128, layers[1], stride=2,
+        self.layer1 = self._make_layer(block, 144, layers[0])
+        self.layer2 = self._make_layer(block, 288, layers[1], stride=2,
                                        dilate=replace_stride_with_dilation[0])
-        self.layer3 = self._make_layer(block, 256, layers[2], stride=2,
+        self.layer3 = self._make_layer(block, 576, layers[2], stride=2,
                                        dilate=replace_stride_with_dilation[1])
-        self.layer4 = self._make_layer(block, 512, layers[3], stride=2,
+        self.layer4 = self._make_layer(block, 1152, layers[3], stride=2,
                                        dilate=replace_stride_with_dilation[2])
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = nn.Linear(512 * block.expansion, num_classes)
+        self.fc = nn.Linear(1152 * block.expansion, num_classes)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -240,21 +240,28 @@ class Model(nn.Module):
         q10 = cast(np.array([[[0, +0, -1, -phi]]], dtype=np.float32))
         q11 = cast(np.array([[[0, -1, -phi, +0]]], dtype=np.float32))
         q12 = cast(np.array([[[0, -phi, +0, -1]]], dtype=np.float32))
+        one = cast(np.array([[[1, 0, 0, 0]]], dtype=np.float32))
 
         icosahedron = th.cat((q01, q02, q03, q04,
                                    q05, q06, q07, q08,
                                    q09, q10, q11, q12), dim=1)
         icosahedron.requires_grad = False
-        view1 = self.build_view(icosahedron * np.sin(np.pi / 2) + np.cos(np.pi / 2))
-        view2 = self.build_view(icosahedron * np.sin(np.pi / 6) + np.cos(np.pi / 6))
-        view3 = self.build_view(icosahedron * np.sin(-np.pi / 6) + np.cos(-np.pi / 6))
+        view1 = self.build_view(icosahedron * np.sin(-np.pi / 3) + one * np.cos(-np.pi / 3))
+        view2 = self.build_view(icosahedron * np.sin(-np.pi / 6) + one * np.cos(-np.pi / 6))
+        view3 = self.build_view(icosahedron * np.sin(+np.pi * 0) + one * np.cos(+np.pi * 0))
+        view4 = self.build_view(icosahedron * np.sin(+np.pi / 6) + one * np.cos(+np.pi / 6))
+        view5 = self.build_view(icosahedron * np.sin(+np.pi / 3) + one * np.cos(+np.pi / 3))
+        view6 = self.build_view(icosahedron * np.sin(+np.pi / 2) + one * np.cos(+np.pi / 2))
 
         self.icosahedron = th.cat((
-            icosahedron * np.sin(np.pi / 2) + np.cos(np.pi / 2),
-            icosahedron * np.sin(np.pi / 6) + np.cos(np.pi / 6),
-            icosahedron * np.sin(-np.pi / 6) + np.cos(-np.pi / 6)
+            icosahedron * np.sin(-np.pi / 3) + one * np.cos(-np.pi / 3),
+            icosahedron * np.sin(-np.pi / 6) + one * np.cos(-np.pi / 6),
+            icosahedron * np.sin(+np.pi * 0) + one * np.cos(+np.pi * 0),
+            icosahedron * np.sin(+np.pi / 6) + one * np.cos(+np.pi / 6),
+            icosahedron * np.sin(+np.pi / 3) + one * np.cos(+np.pi / 3),
+            icosahedron * np.sin(+np.pi / 2) + one * np.cos(+np.pi / 2),
         ), dim=1).view(1, 36, 4)
-        self.views = th.cat((view1, view2, view3), dim=1)
+        self.views = th.cat((view1, view2, view3, view4, view5, view6), dim=1)
 
     def build_view(self, qs):
         v01 = self.skyview(qs[:, 0]).view(1, 1, 512, 512)
@@ -280,7 +287,7 @@ class Model(nn.Module):
     def forward(self, x):
         batch = x.size()[0]
 
-        estimate = self.estimator(th.cat((x, self.views), dim=1)).view(1, 36, 1)
+        estimate = self.estimator(th.cat((x, self.views), dim=1)).view(1, 72, 1)
         qa = normalize(th.sum(self.icosahedron * estimate, dim=1))
         s1 = self.skyview(qa).view(batch, 1, 512, 512)
 
