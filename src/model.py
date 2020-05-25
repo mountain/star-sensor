@@ -260,7 +260,7 @@ class Model(nn.Module):
             icosahedron * np.sin(+np.pi / 6) + one * np.cos(+np.pi / 6),
             icosahedron * np.sin(+np.pi / 3) + one * np.cos(+np.pi / 3),
             icosahedron * np.sin(+np.pi / 2) + one * np.cos(+np.pi / 2),
-        ), dim=1).view(1, 36, 4)
+        ), dim=1).view(1, 72, 4)
         self.views = th.cat((view1, view2, view3, view4, view5, view6), dim=1)
 
     def build_view(self, qs):
