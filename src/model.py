@@ -57,6 +57,8 @@ class Estimator(nn.Module):
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(512 * block.expansion, num_classes)
         self.softmax = nn.Softmax()
+        self.ones = cast(np.ones([1, 12, 512, 512], dtype=np.float32))
+        self.ones.requires_grad = False
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -116,7 +118,7 @@ class Estimator(nn.Module):
         y = self.fc(y)
         y = self.softmax(y).view(-1, 12, 1, 1)
 
-        return x[:, 1:13] * y
+        return self.ones * y
 
 
 class Locator(nn.Module):
@@ -127,7 +129,7 @@ class Locator(nn.Module):
         norm_layer = nn.InstanceNorm2d
         self._norm_layer = norm_layer
         layers = [2, 2, 2, 2]
-        num_classes = 4
+        num_classes = 12
         inchannel = 15
 
         self.inplanes = 64
@@ -214,7 +216,8 @@ class Locator(nn.Module):
         y = th.flatten(y, 1)
         y = self.fc(y)
 
-        return y
+
+        return y.view(1, 12, 1)
 
 
 class Model(nn.Module):
@@ -255,25 +258,31 @@ class Model(nn.Module):
         v10 = self.skyview(q10).view(1, 1, 512, 512)
         v11 = self.skyview(q11).view(1, 1, 512, 512)
         v12 = self.skyview(q12).view(1, 1, 512, 512)
-        self.icosahedron = th.cat((v01, v02, v03, v04,
+
+        self.icosahedron = th.cat((q01, q02, q03, q04,
+                                   q05, q06, q07, q08,
+                                   q09, q10, q11, q12), dim=0).view(1, 12, 4)
+        self.icosahedron.requires_grad=False
+
+        self.icosahedron_view = th.cat((v01, v02, v03, v04,
                                    v05, v06, v07, v08,
                                    v09, v10, v11, v12), dim=1)
-        self.icosahedron.requires_grad = False
+        self.icosahedron_view.requires_grad = False
 
     def forward(self, x):
         batch = x.size()[0]
 
-        estimate = self.estimator(th.cat((x, self.icosahedron), dim=1))
+        estimate = self.estimator(th.cat((x, self.icosahedron_view), dim=1))
 
-        q1 = normalize(self.locator(th.cat((x, self.init, self.init, estimate), dim=1)).view(batch, 4))
+        q1 = normalize(th.sum(self.icosahedron * self.locator(th.cat((x, self.init, self.init, estimate), dim=1)), dim=1).view(batch, 4))
         qa = q1
         s1 = self.skyview(qa).view(batch, 1, 512, 512)
 
-        q2 = normalize(self.locator(th.cat((x, s1, self.init, estimate), dim=1)).view(batch, 4))
+        q2 = normalize(th.sum(self.icosahedron * self.locator(th.cat((x, s1, self.init, estimate), dim=1)), dim=1).view(batch, 4))
         qa = hamilton_product(q2, qa)
         s2 = self.skyview(qa).view(batch, 1, 512, 512)
 
-        q3 = normalize(self.locator(th.cat((x, s2, s1, estimate), dim=1)).view(batch, 4))
+        q3 = normalize(th.sum(self.icosahedron * self.locator(th.cat((x, s2, s1, estimate), dim=1)), dim=1).view(batch, 4))
         qa = hamilton_product(q3, qa)
         s3 = self.skyview(qa).view(batch, 1, 512, 512)
 
