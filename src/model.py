@@ -23,7 +23,7 @@ def normalize(q):
 class Estimator(nn.Module):
 
     def __init__(self, zero_init_residual=False, groups=1, width_per_group=64, replace_stride_with_dilation=None):
-        super(Locator, self).__init__()
+        super(Estimator, self).__init__()
         block = BasicBlock
         norm_layer = nn.InstanceNorm2d
         layers = [2, 2, 2, 2]
