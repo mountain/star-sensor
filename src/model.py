@@ -29,7 +29,7 @@ class Estimator(nn.Module):
         self._norm_layer = norm_layer
         layers = [2, 2, 2, 2]
         num_classes = 12
-        inchannel = 12
+        inchannel = 13
 
         self.inplanes = 64
         self.dilation = 1
