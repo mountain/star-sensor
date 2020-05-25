@@ -56,9 +56,6 @@ class Estimator(nn.Module):
                                        dilate=replace_stride_with_dilation[2])
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(512 * block.expansion, num_classes)
-        self.softmax = nn.Softmax()
-        self.ones = cast(np.ones([1, 12, 512, 512], dtype=np.float32))
-        self.ones.requires_grad = False
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -117,13 +114,7 @@ class Estimator(nn.Module):
         y = th.flatten(y, 1)
         y = self.fc(y)
 
-        p = y[:, 0:12]
-        p = self.softmax(p).view(-1, 12, 1, 1)
-        a = y[:, 12:24]
-        b = y[:, 24:36]
-        alpha = th.atan2(a, b).view(-1, 12, 1, 1)
-        
-        return th.cat((self.ones * p, self.ones * th.cos(alpha), self.ones * th.sin(alpha)), dim=1)
+        return y
 
 
 class Locator(nn.Module):
@@ -133,11 +124,11 @@ class Locator(nn.Module):
         block = BasicBlock
         norm_layer = nn.InstanceNorm2d
         self._norm_layer = norm_layer
-        layers = [16, 16, 16, 16]
+        layers = [2, 2, 2, 2]
         num_classes = 4
-        inchannel = 39
+        inchannel = 2
 
-        self.inplanes = 96
+        self.inplanes = 64
         self.dilation = 1
         if replace_stride_with_dilation is None:
             # each element in the tuple indicates if we should replace
@@ -258,9 +249,14 @@ class Model(nn.Module):
         view2 = self.build_view(icosahedron * np.sin(np.pi / 6) + np.cos(np.pi / 6))
         view3 = self.build_view(icosahedron * np.sin(-np.pi / 6) + np.cos(-np.pi / 6))
 
+        self.icosahedron = th.cat((
+            icosahedron * np.sin(np.pi / 2) + np.cos(np.pi / 2),
+            icosahedron * np.sin(np.pi / 6) + np.cos(np.pi / 6),
+            icosahedron * np.sin(-np.pi / 6) + np.cos(-np.pi / 6)
+        ), dim=1).view(1, 36, 4)
         self.views = th.cat((view1, view2, view3), dim=1)
 
-    def build_view(self, qs): 
+    def build_view(self, qs):
         v01 = self.skyview(qs[:, 0]).view(1, 1, 512, 512)
         v02 = self.skyview(qs[:, 1]).view(1, 1, 512, 512)
         v03 = self.skyview(qs[:, 2]).view(1, 1, 512, 512)
@@ -284,18 +280,16 @@ class Model(nn.Module):
     def forward(self, x):
         batch = x.size()[0]
 
-        estimate = self.estimator(th.cat((x, self.views), dim=1))
-
-        q1 = normalize(self.locator(th.cat((x, self.init, self.init, estimate), dim=1)).view(batch, 4))
-        qa = q1
+        estimate = self.estimator(th.cat((x, self.views), dim=1)).view(1, 36, 1)
+        qa = normalize(th.sum(self.icosahedron * estimate, dim=1))
         s1 = self.skyview(qa).view(batch, 1, 512, 512)
 
-        q2 = normalize(self.locator(th.cat((x, s1, self.init, estimate), dim=1)).view(batch, 4))
-        qa = hamilton_product(q2, qa)
+        d1 = self.locator(th.cat((x, s1), dim=1)).view(batch, 4)
+        qa = normalize(qa + d1)
         s2 = self.skyview(qa).view(batch, 1, 512, 512)
 
-        q3 = normalize(self.locator(th.cat((x, s2, s1, estimate), dim=1)).view(batch, 4))
-        qa = hamilton_product(q3, qa)
+        d2 = self.locator(th.cat((x, s2), dim=1)).view(batch, 4)
+        qa = normalize(qa + d2)
         s3 = self.skyview(qa).view(batch, 1, 512, 512)
 
         return s1, s2, s3, qa
