@@ -11,7 +11,7 @@ import torch.nn as nn
 from pathlib import Path
 from torch.utils.data import DataLoader
 
-from model import ControlModel
+from model import Model
 from data import StarDataset
 from util.gauss import Gaussian
 from util.plotter import plot
@@ -47,7 +47,7 @@ def train_model():
     wd = 0.01
     epochs = 500
     logger.info('lr: {}, wd: {}'.format(lr, wd))
-    mdl = ControlModel()
+    mdl = Model()
     gss = Gaussian(5)
     if th.cuda.is_available():
         mdl = mdl.cuda()
