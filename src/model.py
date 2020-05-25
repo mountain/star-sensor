@@ -254,9 +254,9 @@ class Model(nn.Module):
                                    q05, q06, q07, q08,
                                    q09, q10, q11, q12), dim=1)
         icosahedron.requires_grad = False
-        view1 = self.build_view(icosahedron * th.sin(np.pi / 2) + th.cos(np.pi / 2))
-        view2 = self.build_view(icosahedron * th.sin(np.pi / 6) + th.cos(np.pi / 6))
-        view3 = self.build_view(icosahedron * th.sin(-np.pi / 6) + th.cos(-np.pi / 6))
+        view1 = self.build_view(icosahedron * np.sin(np.pi / 2) + np.cos(np.pi / 2))
+        view2 = self.build_view(icosahedron * np.sin(np.pi / 6) + np.cos(np.pi / 6))
+        view3 = self.build_view(icosahedron * np.sin(-np.pi / 6) + np.cos(-np.pi / 6))
 
         self.views = th.cat((view1, view2, view3), dim=1)
 
