@@ -121,7 +121,7 @@ class Estimator(nn.Module):
         p = self.softmax(p).view(-1, 12, 1, 1)
         a = y[:, 12:24]
         b = y[:, 24:36]
-        alpha = th.atan2(a, b)
+        alpha = th.atan2(a, b).view(-1, 12, 1, 1)
         
         return th.cat((self.ones * p, self.ones * th.cos(alpha), self.ones * th.sin(alpha)), dim=1)
 
