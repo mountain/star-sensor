@@ -29,7 +29,7 @@ class Estimator(nn.Module):
         self._norm_layer = norm_layer
         layers = [2, 2, 2, 2]
         num_classes = 36
-        inchannel = 13
+        inchannel = 37
 
         self.inplanes = 64
         self.dilation = 1
@@ -237,40 +237,54 @@ class Model(nn.Module):
         self.init.requires_grad = False
 
         phi = (1 + np.sqrt(5)) / 2
-        q01 = cast(np.array([[0, +0, +1, +phi]], dtype=np.float32))
-        q02 = cast(np.array([[0, +1, +phi, +0]], dtype=np.float32))
-        q03 = cast(np.array([[0, +phi, +0, +1]], dtype=np.float32))
-        q04 = cast(np.array([[0, +0, -1, +phi]], dtype=np.float32))
-        q05 = cast(np.array([[0, -1, +phi, +0]], dtype=np.float32))
-        q06 = cast(np.array([[0, +phi, +0, -1]], dtype=np.float32))
-        q07 = cast(np.array([[0, +0, +1, -phi]], dtype=np.float32))
-        q08 = cast(np.array([[0, +1, -phi, +0]], dtype=np.float32))
-        q09 = cast(np.array([[0, -phi, +0, +1]], dtype=np.float32))
-        q10 = cast(np.array([[0, +0, -1, -phi]], dtype=np.float32))
-        q11 = cast(np.array([[0, -1, -phi, +0]], dtype=np.float32))
-        q12 = cast(np.array([[0, -phi, +0, -1]], dtype=np.float32))
-        v01 = self.skyview(q01).view(1, 1, 512, 512)
-        v02 = self.skyview(q02).view(1, 1, 512, 512)
-        v03 = self.skyview(q03).view(1, 1, 512, 512)
-        v04 = self.skyview(q04).view(1, 1, 512, 512)
-        v05 = self.skyview(q05).view(1, 1, 512, 512)
-        v06 = self.skyview(q06).view(1, 1, 512, 512)
-        v07 = self.skyview(q07).view(1, 1, 512, 512)
-        v08 = self.skyview(q08).view(1, 1, 512, 512)
-        v09 = self.skyview(q09).view(1, 1, 512, 512)
-        v10 = self.skyview(q10).view(1, 1, 512, 512)
-        v11 = self.skyview(q11).view(1, 1, 512, 512)
-        v12 = self.skyview(q12).view(1, 1, 512, 512)
+        q01 = cast(np.array([[[0, +0, +1, +phi]]], dtype=np.float32))
+        q02 = cast(np.array([[[0, +1, +phi, +0]]], dtype=np.float32))
+        q03 = cast(np.array([[[0, +phi, +0, +1]]], dtype=np.float32))
+        q04 = cast(np.array([[[0, +0, -1, +phi]]], dtype=np.float32))
+        q05 = cast(np.array([[[0, -1, +phi, +0]]], dtype=np.float32))
+        q06 = cast(np.array([[[0, +phi, +0, -1]]], dtype=np.float32))
+        q07 = cast(np.array([[[0, +0, +1, -phi]]], dtype=np.float32))
+        q08 = cast(np.array([[[0, +1, -phi, +0]]], dtype=np.float32))
+        q09 = cast(np.array([[[0, -phi, +0, +1]]], dtype=np.float32))
+        q10 = cast(np.array([[[0, +0, -1, -phi]]], dtype=np.float32))
+        q11 = cast(np.array([[[0, -1, -phi, +0]]], dtype=np.float32))
+        q12 = cast(np.array([[[0, -phi, +0, -1]]], dtype=np.float32))
 
-        self.icosahedron = th.cat((v01, v02, v03, v04,
-                                   v05, v06, v07, v08,
-                                   v09, v10, v11, v12), dim=1)
-        self.icosahedron.requires_grad = False
+        icosahedron = th.cat((q01, q02, q03, q04,
+                                   q05, q06, q07, q08,
+                                   q09, q10, q11, q12), dim=1)
+        icosahedron.requires_grad = False
+        view1 = self.build_view(icosahedron * th.sin(np.pi / 2) + th.cos(np.pi / 2))
+        view2 = self.build_view(icosahedron * th.sin(np.pi / 6) + th.cos(np.pi / 6))
+        view3 = self.build_view(icosahedron * th.sin(-np.pi / 6) + th.cos(-np.pi / 6))
+
+        self.views = th.cat((view1, view2, view3), dim=1)
+
+    def build_view(qs):  
+        v01 = self.skyview(qs[:, 0]).view(1, 1, 512, 512)
+        v02 = self.skyview(qs[:, 1]).view(1, 1, 512, 512)
+        v03 = self.skyview(qs[:, 2]).view(1, 1, 512, 512)
+        v04 = self.skyview(qs[:, 3]).view(1, 1, 512, 512)
+        v05 = self.skyview(qs[:, 4]).view(1, 1, 512, 512)
+        v06 = self.skyview(qs[:, 5]).view(1, 1, 512, 512)
+        v07 = self.skyview(qs[:, 6]).view(1, 1, 512, 512)
+        v08 = self.skyview(qs[:, 7]).view(1, 1, 512, 512)
+        v09 = self.skyview(qs[:, 8]).view(1, 1, 512, 512)
+        v10 = self.skyview(qs[:, 9]).view(1, 1, 512, 512)
+        v11 = self.skyview(qs[:, 10]).view(1, 1, 512, 512)
+        v12 = self.skyview(qs[:, 11]).view(1, 1, 512, 512)
+
+        view = th.cat((v01, v02, v03, v04,
+                v05, v06, v07, v08,
+                v09, v10, v11, v12), dim=1)
+        view.requires_grad = False
+
+        return view
 
     def forward(self, x):
         batch = x.size()[0]
 
-        estimate = self.estimator(th.cat((x, self.icosahedron), dim=1))
+        estimate = self.estimator(th.cat((x, self.views), dim=1))
 
         q1 = normalize(self.locator(th.cat((x, self.init, self.init, estimate), dim=1)).view(batch, 4))
         qa = q1
