@@ -260,7 +260,7 @@ class Model(nn.Module):
 
         self.views = th.cat((view1, view2, view3), dim=1)
 
-    def build_view(qs):  
+    def build_view(self, qs): 
         v01 = self.skyview(qs[:, 0]).view(1, 1, 512, 512)
         v02 = self.skyview(qs[:, 1]).view(1, 1, 512, 512)
         v03 = self.skyview(qs[:, 2]).view(1, 1, 512, 512)
