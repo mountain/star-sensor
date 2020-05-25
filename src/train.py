@@ -67,8 +67,8 @@ def train_model():
                 stars = stars.cuda()
                 q = q.cuda()
 
-            im1, im2, im3, im4, im5, im6, im7, im8, im9, qns = mdl(stars)
-            ims = th.cat((gss(im7), gss(im8), gss(im9)), dim=1)
+            im1, im2, im3, qns = mdl(stars)
+            ims = th.cat((gss(im1), gss(im2), gss(im3)), dim=1)
             sts = th.cat((gss(stars), gss(stars), gss(stars)), dim=1)
             sloss = mse(ims, sts) * 512 * 512
             qloss = mse(qns, q)
@@ -88,12 +88,6 @@ def train_model():
                 plot(open('1.png', mode='wb'), im1.detach().cpu().numpy().reshape(512, 512))
                 plot(open('2.png', mode='wb'), im2.detach().cpu().numpy().reshape(512, 512))
                 plot(open('3.png', mode='wb'), im3.detach().cpu().numpy().reshape(512, 512))
-                plot(open('4.png', mode='wb'), im4.detach().cpu().numpy().reshape(512, 512))
-                plot(open('5.png', mode='wb'), im5.detach().cpu().numpy().reshape(512, 512))
-                plot(open('6.png', mode='wb'), im6.detach().cpu().numpy().reshape(512, 512))
-                plot(open('7.png', mode='wb'), im7.detach().cpu().numpy().reshape(512, 512))
-                plot(open('8.png', mode='wb'), im8.detach().cpu().numpy().reshape(512, 512))
-                plot(open('9.png', mode='wb'), im9.detach().cpu().numpy().reshape(512, 512))
 
                 logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Loss per 100: {loss_per_100 / 100.0}')
                 loss_per_100 = 0.0
@@ -111,8 +105,8 @@ def train_model():
                 stars = stars.cuda()
                 q = q.cuda()
 
-            im1, im2, im3, im4, im5, im6, im7, im8, im9, qns = mdl(stars)
-            ims = th.cat((gss(im7), gss(im8), gss(im9)), dim=1)
+            im1, im2, im3, qns = mdl(stars)
+            ims = th.cat((gss(im1), gss(im2), gss(im3)), dim=1)
             sts = th.cat((gss(stars), gss(stars), gss(stars)), dim=1)
             sloss = mse(ims, sts) * 512 * 512
             qloss = mse(qns, q)
