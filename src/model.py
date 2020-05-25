@@ -27,7 +27,7 @@ class Estimator(nn.Module):
         block = BasicBlock
         norm_layer = nn.InstanceNorm2d
         self._norm_layer = norm_layer
-        layers = [32, 32, 32, 32]
+        layers = [16, 16, 16, 16]
         num_classes = 36
         inchannel = 37
 
@@ -133,7 +133,7 @@ class Locator(nn.Module):
         block = BasicBlock
         norm_layer = nn.InstanceNorm2d
         self._norm_layer = norm_layer
-        layers = [32, 32, 32, 32]
+        layers = [16, 16, 16, 16]
         num_classes = 4
         inchannel = 39
 
