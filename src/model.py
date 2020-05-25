@@ -116,7 +116,7 @@ class Estimator(nn.Module):
         y = self.fc(y)
         y = self.softmax(y).view(-1, 12, 1, 1)
 
-        return x * y
+        return x[:, 1:13] * y
 
 
 class Locator(nn.Module):
