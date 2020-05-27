@@ -15,11 +15,6 @@ class Icosahedron(nn.Module):
         super().__init__()
         self.skyview = Skyview()
 
-        self.one = cast(np.array([[1, 0, 0, 0]], dtype=np.float32))
-        self.one.requires_grad = False
-        self.init = self.skyview(self.one).view(1, 1, 512, 512)
-        self.init.requires_grad = False
-
         phi = (1 + np.sqrt(5)) / 2
         q01 = cast(np.array([[[0, +0, +1, +phi]]], dtype=np.float32))
         q02 = cast(np.array([[[0, +1, +phi, +0]]], dtype=np.float32))
@@ -39,6 +34,8 @@ class Icosahedron(nn.Module):
                                    q05, q06, q07, q08,
                                    q09, q10, q11, q12), dim=1), channel=2)
         icosahedron.requires_grad = False
+
+        view0 = self.skyview(one[:, 0]).view(1, 1, 512, 512)
         view1 = self.build_view(icosahedron * np.sin(-np.pi / 3) + one * np.cos(-np.pi / 3))
         view2 = self.build_view(icosahedron * np.sin(-np.pi / 6) + one * np.cos(-np.pi / 6))
         view3 = self.build_view(icosahedron * np.sin(+np.pi * 0) + one * np.cos(+np.pi * 0))
@@ -47,14 +44,16 @@ class Icosahedron(nn.Module):
         view6 = self.build_view(icosahedron * np.sin(+np.pi / 2) + one * np.cos(+np.pi / 2))
 
         self.quaternions = th.cat((
+            one,
+            icosahedron * np.sin(-np.pi / 2) + one * np.cos(-np.pi / 2),
             icosahedron * np.sin(-np.pi / 3) + one * np.cos(-np.pi / 3),
             icosahedron * np.sin(-np.pi / 6) + one * np.cos(-np.pi / 6),
-            icosahedron * np.sin(+np.pi * 0) + one * np.cos(+np.pi * 0),
             icosahedron * np.sin(+np.pi / 6) + one * np.cos(+np.pi / 6),
             icosahedron * np.sin(+np.pi / 3) + one * np.cos(+np.pi / 3),
             icosahedron * np.sin(+np.pi / 2) + one * np.cos(+np.pi / 2),
-        ), dim=1).view(1, 72, 4)
-        self.views = th.cat((view1, view2, view3, view4, view5, view6), dim=1)
+        ), dim=1).view(1, 73, 4)
+
+        self.views = th.cat((view0, view1, view2, view3, view4, view5, view6), dim=1)
 
     def build_view(self, qs):
         v01 = self.skyview(qs[:, 0]).view(1, 1, 512, 512)
@@ -155,5 +154,6 @@ if __name__ == '__main__':
     plot(open('charts/69.png', mode='wb'), ic.views[0, 69].detach().cpu().numpy().reshape(512, 512))
     plot(open('charts/70.png', mode='wb'), ic.views[0, 70].detach().cpu().numpy().reshape(512, 512))
     plot(open('charts/71.png', mode='wb'), ic.views[0, 71].detach().cpu().numpy().reshape(512, 512))
+    plot(open('charts/72.png', mode='wb'), ic.views[0, 72].detach().cpu().numpy().reshape(512, 512))
 
 
