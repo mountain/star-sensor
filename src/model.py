@@ -56,6 +56,7 @@ class Estimator(nn.Module):
                                        dilate=replace_stride_with_dilation[2])
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(1152 * block.expansion, num_classes)
+        self.softmax = nn.Softmax(1)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -113,6 +114,7 @@ class Estimator(nn.Module):
         y = self.avgpool(y)
         y = th.flatten(y, 1)
         y = self.fc(y)
+        y = self.softmax(y)
 
         return y
 
@@ -292,11 +294,11 @@ class Model(nn.Module):
         s1 = self.skyview(qa).view(batch, 1, 512, 512)
 
         d1 = self.locator(th.cat((x, s1), dim=1)).view(batch, 4)
-        qa = normalize(qa + hamilton_product(d1, qa))
+        qa = normalize(qa + d1)
         s2 = self.skyview(qa).view(batch, 1, 512, 512)
 
         d2 = self.locator(th.cat((x, s2), dim=1)).view(batch, 4)
-        qa = normalize(qa + hamilton_product(d2, qa))
+        qa = normalize(qa + d2))
         s3 = self.skyview(qa).view(batch, 1, 512, 512)
 
         return s1, s2, s3, qa
