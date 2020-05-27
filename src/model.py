@@ -27,7 +27,7 @@ class Estimator(nn.Module):
         norm_layer = nn.InstanceNorm2d
         self._norm_layer = norm_layer
         layers = [8, 8, 8, 8]
-        num_classes = 72
+        num_classes = 73
         inchannel = num_classes + 1
 
         self.inplanes = 144
