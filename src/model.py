@@ -113,7 +113,7 @@ class Estimator(nn.Module):
 
         y = self.avgpool(y)
         y = th.flatten(y, 1)
-        y = self.fc(y)
+        y = 10 * self.fc(y)
         y = self.softmax(y)
 
         return y
