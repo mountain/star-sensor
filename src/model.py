@@ -8,6 +8,7 @@ import logging
 from torchvision.models.resnet import Bottleneck, BasicBlock, conv1x1
 from qnn.quaternion_ops import q_normalize, hamilton_product
 from util.sky import Skyview, cast
+from util.icosahedron import Icosahedron
 
 
 logger = logging.getLogger()
@@ -226,69 +227,13 @@ class Model(nn.Module):
         self.one.requires_grad = False
         self.init = self.skyview(self.one).view(1, 1, 512, 512)
         self.init.requires_grad = False
-
-        phi = (1 + np.sqrt(5)) / 2
-        q01 = cast(np.array([[[0, +0, +1, +phi]]], dtype=np.float32))
-        q02 = cast(np.array([[[0, +1, +phi, +0]]], dtype=np.float32))
-        q03 = cast(np.array([[[0, +phi, +0, +1]]], dtype=np.float32))
-        q04 = cast(np.array([[[0, +0, -1, +phi]]], dtype=np.float32))
-        q05 = cast(np.array([[[0, -1, +phi, +0]]], dtype=np.float32))
-        q06 = cast(np.array([[[0, +phi, +0, -1]]], dtype=np.float32))
-        q07 = cast(np.array([[[0, +0, +1, -phi]]], dtype=np.float32))
-        q08 = cast(np.array([[[0, +1, -phi, +0]]], dtype=np.float32))
-        q09 = cast(np.array([[[0, -phi, +0, +1]]], dtype=np.float32))
-        q10 = cast(np.array([[[0, +0, -1, -phi]]], dtype=np.float32))
-        q11 = cast(np.array([[[0, -1, -phi, +0]]], dtype=np.float32))
-        q12 = cast(np.array([[[0, -phi, +0, -1]]], dtype=np.float32))
-        one = cast(np.array([[[1, 0, 0, 0]]], dtype=np.float32))
-
-        icosahedron = th.cat((q01, q02, q03, q04,
-                                   q05, q06, q07, q08,
-                                   q09, q10, q11, q12), dim=1)
-        icosahedron.requires_grad = False
-        view1 = self.build_view(icosahedron * np.sin(-np.pi / 3) + one * np.cos(-np.pi / 3))
-        view2 = self.build_view(icosahedron * np.sin(-np.pi / 6) + one * np.cos(-np.pi / 6))
-        view3 = self.build_view(icosahedron * np.sin(+np.pi * 0) + one * np.cos(+np.pi * 0))
-        view4 = self.build_view(icosahedron * np.sin(+np.pi / 6) + one * np.cos(+np.pi / 6))
-        view5 = self.build_view(icosahedron * np.sin(+np.pi / 3) + one * np.cos(+np.pi / 3))
-        view6 = self.build_view(icosahedron * np.sin(+np.pi / 2) + one * np.cos(+np.pi / 2))
-
-        self.icosahedron = th.cat((
-            icosahedron * np.sin(-np.pi / 3) + one * np.cos(-np.pi / 3),
-            icosahedron * np.sin(-np.pi / 6) + one * np.cos(-np.pi / 6),
-            icosahedron * np.sin(+np.pi * 0) + one * np.cos(+np.pi * 0),
-            icosahedron * np.sin(+np.pi / 6) + one * np.cos(+np.pi / 6),
-            icosahedron * np.sin(+np.pi / 3) + one * np.cos(+np.pi / 3),
-            icosahedron * np.sin(+np.pi / 2) + one * np.cos(+np.pi / 2),
-        ), dim=1).view(1, 72, 4)
-        self.views = th.cat((view1, view2, view3, view4, view5, view6), dim=1)
-
-    def build_view(self, qs):
-        v01 = self.skyview(qs[:, 0]).view(1, 1, 512, 512)
-        v02 = self.skyview(qs[:, 1]).view(1, 1, 512, 512)
-        v03 = self.skyview(qs[:, 2]).view(1, 1, 512, 512)
-        v04 = self.skyview(qs[:, 3]).view(1, 1, 512, 512)
-        v05 = self.skyview(qs[:, 4]).view(1, 1, 512, 512)
-        v06 = self.skyview(qs[:, 5]).view(1, 1, 512, 512)
-        v07 = self.skyview(qs[:, 6]).view(1, 1, 512, 512)
-        v08 = self.skyview(qs[:, 7]).view(1, 1, 512, 512)
-        v09 = self.skyview(qs[:, 8]).view(1, 1, 512, 512)
-        v10 = self.skyview(qs[:, 9]).view(1, 1, 512, 512)
-        v11 = self.skyview(qs[:, 10]).view(1, 1, 512, 512)
-        v12 = self.skyview(qs[:, 11]).view(1, 1, 512, 512)
-
-        view = th.cat((v01, v02, v03, v04,
-                v05, v06, v07, v08,
-                v09, v10, v11, v12), dim=1)
-        view.requires_grad = False
-
-        return view
+        self.icosahedron = Icosahedron()
 
     def forward(self, x):
         batch = x.size()[0]
 
-        estimate = self.estimator(th.cat((x, self.views), dim=1)).view(1, 72, 1)
-        qa = normalize(th.sum(self.icosahedron * estimate, dim=1))
+        estimate = self.estimator(th.cat((x, self.icosahedron.views), dim=1)).view(1, 72, 1)
+        qa = normalize(th.sum(self.icosahedron.quaternions * estimate, dim=1))
         s1 = self.skyview(qa).view(batch, 1, 512, 512)
 
         d1 = self.locator(th.cat((x, s1), dim=1)).view(batch, 4)
