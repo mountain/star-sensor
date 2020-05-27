@@ -298,7 +298,7 @@ class Model(nn.Module):
         s2 = self.skyview(qa).view(batch, 1, 512, 512)
 
         d2 = self.locator(th.cat((x, s2), dim=1)).view(batch, 4)
-        qa = normalize(qa + d2))
+        qa = normalize(qa + d2)
         s3 = self.skyview(qa).view(batch, 1, 512, 512)
 
         return s1, s2, s3, qa
