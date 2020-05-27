@@ -232,7 +232,7 @@ class Model(nn.Module):
     def forward(self, x):
         batch = x.size()[0]
 
-        estimate = self.estimator(th.cat((x, self.icosahedron.views), dim=1)).view(1, 72, 1)
+        estimate = self.estimator(th.cat((x, self.icosahedron.views), dim=1)).view(1, 73, 1)
         qa = normalize(th.sum(self.icosahedron.quaternions * estimate, dim=1))
         s1 = self.skyview(qa).view(batch, 1, 512, 512)
 
