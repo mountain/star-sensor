@@ -106,8 +106,8 @@ def train_model():
                 q = q.cuda()
 
             im1, im2, im3, qns = mdl(stars)
-            ims = th.cat((gss(im1), gss(im2), gss(im3)), dim=1)
-            sts = th.cat((gss(stars), gss(stars), gss(stars)), dim=1)
+            ims = th.cat((gss(im1), 10 * gss(im2), 100 * gss(im3)), dim=1)
+            sts = th.cat((gss(stars), 10 * gss(stars), 100 * gss(stars)), dim=1)
             sloss = mse(ims, sts) * 512 * 512
             qloss = mse(qns, q)
             loss = sloss + qloss

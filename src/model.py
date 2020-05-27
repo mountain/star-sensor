@@ -15,8 +15,6 @@ logger = logging.getLogger()
 
 def normalize(q):
     p = q_normalize(q)
-    #logger.info('q: %s', q.detach().cpu().numpy())
-    #logger.info('p: %s', p.detach().cpu().numpy())
     return p
 
 
@@ -113,7 +111,7 @@ class Estimator(nn.Module):
 
         y = self.avgpool(y)
         y = th.flatten(y, 1)
-        y = 10 * self.fc(y)
+        y = 100 * self.fc(y)
         y = self.softmax(y)
 
         return y
