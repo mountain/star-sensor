@@ -108,8 +108,8 @@ def train_model():
             im1, im2, im3, qns = mdl(stars)
             ims = th.cat((gss(im1), 10 * gss(im2), 100 * gss(im3)), dim=1)
             sts = th.cat((gss(stars), 10 * gss(stars), 100 * gss(stars)), dim=1)
-            sloss = mse(ims, sts) * 512 * 512 / 100
-            qloss = 100 * mse(qns, q)
+            sloss = mse(ims, sts) * 512 * 512 / 100 / 16
+            qloss = mse(qns, q)
             loss = sloss + qloss
             logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Loss: {loss.item()}')
             loss_per_epoch += loss.item()
