@@ -149,20 +149,4 @@ class Model(nn.Module):
         qa = normalize(qa + hamilton_product(d4, qa))
         s5 = self.skyview(qa).view(batch, 1, 512, 512)
 
-        d5 = self.locator(th.cat((x, s5), dim=1)).view(batch, 4)
-        qa = normalize(qa + hamilton_product(d5, qa))
-        s6 = self.skyview(qa).view(batch, 1, 512, 512)
-
-        d6 = self.locator(th.cat((x, s6), dim=1)).view(batch, 4)
-        qa = normalize(qa + hamilton_product(d6, qa))
-        s7 = self.skyview(qa).view(batch, 1, 512, 512)
-
-        d7 = self.locator(th.cat((x, s7), dim=1)).view(batch, 4)
-        qa = normalize(qa + hamilton_product(d7, qa))
-        s8 = self.skyview(qa).view(batch, 1, 512, 512)
-
-        d8 = self.locator(th.cat((x, s8), dim=1)).view(batch, 4)
-        qa = normalize(qa + hamilton_product(d8, qa))
-        s9 = self.skyview(qa).view(batch, 1, 512, 512)
-
-        return s7, s8, s9, qa
+        return s2, s3, s4, qa
