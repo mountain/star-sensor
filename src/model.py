@@ -227,19 +227,35 @@ class Model(nn.Module):
         self.init = self.skyview(self.one).view(1, 1, 512, 512)
         self.init.requires_grad = False
 
-    def forward(self, x):
-        batch = x.size()[0]
+        self.pos = None
+        self.view = None
 
+    def qinit(self, x):
+        batch = x.size()[0]
         estimate = self.estimator(th.cat((x, self.icosahedron.views), dim=1)).view(1, 73, 1)
         qa = normalize(th.sum(self.icosahedron.quaternions * estimate, dim=1))
         s1 = self.skyview(qa).view(batch, 1, 512, 512)
 
-        d1 = self.locator(th.cat((x, s1), dim=1)).view(batch, 4)
-        qa = normalize(qa + hamilton_product(d1, qa))
+        self.pos = qa
+        self.view = s1
+
+        return s1, qa
+
+    def qforward(self, x):
+        batch = x.size()[0]
+
+        d1 = self.locator(th.cat((x, self.view), dim=1)).view(batch, 4)
+        qa = normalize(self.pos + hamilton_product(d1, self.pos))
         s2 = self.skyview(qa).view(batch, 1, 512, 512)
 
-        d2 = self.locator(th.cat((x, s2), dim=1)).view(batch, 4)
-        qa = normalize(qa + hamilton_product(d2, qa))
-        s3 = self.skyview(qa).view(batch, 1, 512, 512)
+        self.pos = qa
+        self.view = s2
+
+        return s2, qa
+
+    def forward(self, x):
+        s1, _ = self.qinit(x)
+        s2, _ = self.qforward(x)
+        s3, qa = self.qforward(x)
 
         return s1, s2, s3, qa
