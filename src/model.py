@@ -6,9 +6,10 @@ import torch.nn as nn
 import logging
 
 from torchvision.models.resnet import Bottleneck, BasicBlock, conv1x1
-from qnn.quaternion_ops import q_normalize, hamilton_product
+from qnn.quaternion_ops import q_normalize, hamilton_product, get_modulus
 from util.sky import Skyview, cast
 from util.icosahedron import Icosahedron
+from leibniz.diffeq import odeint_adjoint as odeint
 
 
 logger = logging.getLogger()
@@ -230,6 +231,14 @@ class Model(nn.Module):
         self.pos = None
         self.view = None
 
+    def qview(self):
+        return self.skyview(self.pos).view(-1, 1, 512, 512)
+
+    def qvelocity(self, x):
+        q = self.velocity(th.cat((x, self.qview()), dim=1)).view(-1, 4)
+        q = q - th.sum(self.pos * q) / get_modulus(q) * self.pos
+        return q
+
     def qinit(self, x):
         batch = x.size()[0]
         estimate = self.estimator(th.cat((x, self.icosahedron.views), dim=1)).view(1, 73, 1)
@@ -242,20 +251,30 @@ class Model(nn.Module):
         return s1, qa
 
     def qforward(self, x):
-        batch = x.size()[0]
-
-        d1 = self.locator(th.cat((x, self.view), dim=1)).view(batch, 4)
+        d1 = self.locator(th.cat((x, self.view), dim=1)).view(-1, 4)
         qa = normalize(self.pos + hamilton_product(d1, self.pos))
-        s2 = self.skyview(qa).view(batch, 1, 512, 512)
+        s2 = self.skyview(qa).view(-1, 1, 512, 512)
 
         self.pos = qa
         self.view = s2
 
         return s2, qa
 
-    def forward(self, x):
-        s1, _ = self.qinit(x)
-        s2, _ = self.qforward(x)
-        s3, qa = self.qforward(x)
+    def qderivative(self, t, x):
+        self.pos = normalize(self.pos + self.qvelocity(x))
+        return self.pos
 
-        return s1, s2, s3, qa
+    def forward(self, x):
+        # s1, _ = self.qinit(x)
+        # s2, _ = self.qforward(x)
+        # s3, qa = self.qforward(x)
+        #
+        # return s1, s2, s3, qa
+
+        self.qinit(x)
+        qs = odeint(self.qderivative, x, th.arange(0.0, 2.01, 1.0) / 2.0, method='rk4')
+        v0 = self.qview(qs[0])
+        v1 = self.qview(qs[1])
+        v2 = self.qview(qs[2])
+
+        return v0, v1, v2, qs[2]

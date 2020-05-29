@@ -5,6 +5,7 @@ numpy
 pandas
 scipy
 numba
+leibniz
 
 Pillow
 matplotlib
