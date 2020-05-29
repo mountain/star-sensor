@@ -207,7 +207,7 @@ class Skyview(nn.Module):
             bk = self.background_map[1]
             self.background_map[batchsize] = bk.expand(batchsize, bright_stars_count, 512, 512)
 
-        mags = self.magnitude_map[batchsize]
+        mags = self.magnitude_map[batchsize].clone()
         mags.requires_grad_(False)
         background = self.background_map[batchsize].zero_().view(-1, 512, 512).clone()
         background.requires_grad_(False)
