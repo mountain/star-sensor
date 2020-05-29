@@ -254,8 +254,8 @@ class Model(nn.Module):
         q0 = self.flow.qinit(x)
         qs = odeint(self.flow, q0, th.arange(0.0, 1.01, 0.25), method='rk4')
 
-        v2 = self.flow.qview(qs[2])
-        v3 = self.flow.qview(qs[3])
-        v4 = self.flow.qview(qs[4])
+        v2 = self.flow.qview(qs[-3])
+        v3 = self.flow.qview(qs[-2])
+        v4 = self.flow.qview(qs[-1])
 
-        return v2, v3, v4, qs[4]
+        return v2, v3, v4, qs[-1]
