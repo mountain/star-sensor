@@ -33,6 +33,7 @@ class Icosahedron(nn.Module):
         icosahedron = q_normalize(th.cat((q01, q02, q03, q04,
                                    q05, q06, q07, q08,
                                    q09, q10, q11, q12), dim=1), channel=2)
+        icosahedron.requires_grad = False
 
         view0 = self.skyview(one[:, 0]).view(1, 1, 512, 512)
         view1 = self.build_view(icosahedron * np.sin(-np.pi / 3) + one * np.cos(-np.pi / 3))
@@ -71,6 +72,7 @@ class Icosahedron(nn.Module):
         view = th.cat((v01, v02, v03, v04,
                 v05, v06, v07, v08,
                 v09, v10, v11, v12), dim=1)
+        view.requires_grad = False
 
         return view
 
