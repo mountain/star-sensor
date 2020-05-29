@@ -236,7 +236,7 @@ class Skyview(nn.Module):
         background.requires_grad_(False)
         field = th.sum(filtered.float() * background, dim=1, keepdim=True)
 
-        return field
+        return Gaussian(3)(field)
 
     def forward(self, qs):
         sphere = self.sphere() # size(1, bright_stars_count, 3, 1)
