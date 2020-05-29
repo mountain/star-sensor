@@ -237,7 +237,8 @@ class Flow(nn.Module):
 
     def initialize(self, x):
         estimate = self.estimator(th.cat((x, self.icosahedron.views), dim=1)).view(1, 73, 1)
-        return normalize(th.sum(self.icosahedron.quaternions * estimate, dim=1))
+        self.pos = normalize(th.sum(self.icosahedron.quaternions * estimate, dim=1))
+        return self.pos
 
     def forward(self, t, x):
         prev = self.pos
