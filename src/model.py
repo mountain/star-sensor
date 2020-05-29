@@ -216,6 +216,16 @@ class Locator(nn.Module):
         return y.view(1, 4)
 
 
+class Derivative(nn.Module):
+
+    def __init__(self, model):
+        super().__init__()
+        self.model = model
+
+    def forward(self, t, x):
+        return self.model.qderivative(t, x)
+
+
 class Model(nn.Module):
 
     def __init__(self):
@@ -231,6 +241,8 @@ class Model(nn.Module):
 
         self.pos = None
         self.view = None
+
+        self.derivative = Derivative(self)
 
     def qview(self):
         return self.skyview(self.pos).view(-1, 1, 512, 512)
@@ -273,7 +285,7 @@ class Model(nn.Module):
         # return s1, s2, s3, qa
 
         self.qinit(x)
-        qs = odeint(self.qderivative, x, th.arange(0.0, 2.01, 1.0) / 2.0, method='rk4')
+        qs = odeint(self.derivative, x, th.arange(0.0, 2.01, 1.0) / 2.0, method='rk4')
         v0 = self.qview(qs[0])
         v1 = self.qview(qs[1])
         v2 = self.qview(qs[2])
