@@ -29,7 +29,6 @@ class Gaussian(nn.Module):
         gaussian.weight.requires_grad_(False)
         gaussian.padding = (padding, padding)
         self.op = gaussian
-        self.op.requires_grad_(True)
 
     def forward(self, *input):
         return self.op(*input)
