@@ -228,12 +228,12 @@ class Flow(nn.Module):
         self.pos = None
 
     def qvelocity(self, x):
-        q = self.locator(th.cat((x, self.qview()), dim=1)).view(-1, 4)
+        q = self.locator(th.cat((x, self.qview(self.pos)), dim=1)).view(-1, 4)
         q = q - th.sum(self.pos * q) / get_modulus(q) * self.pos
         return q
 
-    def qview(self):
-        return self.skyview(self.pos).view(-1, 1, 512, 512)
+    def qview(self, q):
+        return self.skyview(q).view(-1, 1, 512, 512)
 
     def initialize(self, x):
         estimate = self.estimator(th.cat((x, self.icosahedron.views), dim=1)).view(1, 73, 1)
