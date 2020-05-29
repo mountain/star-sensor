@@ -9,7 +9,7 @@ from torchvision.models.resnet import Bottleneck, BasicBlock, conv1x1
 from qnn.quaternion_ops import q_normalize, hamilton_product, get_modulus
 from util.sky import Skyview, cast
 from util.icosahedron import Icosahedron
-from torchdiffeq import odeint as odeint
+from torchdiffeq import odeint_adjoint as odeint
 
 
 logger = logging.getLogger()
@@ -113,9 +113,6 @@ class Estimator(nn.Module):
 
         y = self.avgpool(y)
         y = th.flatten(y, 1)
-        # y = 100 * self.fc(y)
-        # y = self.softmax(y)
-
         y = self.fc(y)
 
         return y
@@ -261,4 +258,4 @@ class Model(nn.Module):
         v3 = self.flow.qview(qs[3])
         v4 = self.flow.qview(qs[4])
 
-        return v2, v3, v4, qs[2]
+        return v2, v3, v4, qs[4]
