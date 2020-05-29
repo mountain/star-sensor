@@ -70,7 +70,7 @@ def train_model():
             im3, im2, im1, qns = mdl(stars)
             ims = gss(im3)
             sts = gss(stars)
-            sloss = mse(ims, sts) * 512 * 512 / 32
+            sloss = mse(ims, sts) * 512 * 512
             qloss = mse(qns, q)
             loss = sloss + qloss
             optimizer.zero_grad()
