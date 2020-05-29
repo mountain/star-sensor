@@ -155,7 +155,7 @@ class Skyview(nn.Module):
 
         self.gaussian = Gaussian(3)
 
-        self.background = th.zeros(bright_stars_count, 512, 512).to(device)
+        self.background = th.zeros(1, bright_stars_count, 512, 512).to(device)
         self.background_map = {
             1: th.cat([self.background.zero_().clone() for _ in range(1)], dim=0),
         }
@@ -226,6 +226,9 @@ class Skyview(nn.Module):
         if batchsize not in self.magnitude_map:
             ms = self.magnitude_map[1]
             self.magnitude_map[batchsize] = ms.expand(batchsize, -1, -1, -1)
+            bk = self.background_map[1]
+            self.background_map[batchsize] = bk.expand(batchsize, bright_stars_count, 512, 512)
+
         mags = self.magnitude_map[batchsize]
 
         uxs, uys, uzs = points[:, :, 0], points[:, :, 1], points[:, :, 2]  # size(batchsize, bright_stars_count, 1)
@@ -249,7 +252,7 @@ class Skyview(nn.Module):
         ix = (ix * (ix < 512).long() + 511 * (ix > 511).long()) * (ix >= 0).long()
         iy = (iy * (iy < 512).long() + 511 * (iy > 511).long()) * (iy >= 0).long()
 
-        background = self.background_map[batchsize].zero_()
+        background = self.background_map[batchsize].zero_().view(-1, 512, 512)
         background[:, ix, iy] = th.diag(mags.view(batchsize * bright_stars_count))
         background = background.view(batchsize, bright_stars_count, 512, 512)
         background.requires_grad = False
