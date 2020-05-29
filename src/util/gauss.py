@@ -21,7 +21,7 @@ class Gaussian(nn.Module):
         gaussian_kernel = (1. / (2. * np.pi * variance)) * th.exp((-th.sum((xy_grid - mean)**2., dim=-1) / (2 * variance)).float())
         gaussian_kernel = gaussian_kernel / th.sum(gaussian_kernel)
         gaussian_kernel = gaussian_kernel.view(1, 1, kernel_size, kernel_size)
-        gaussian_kernel = gaussian_kernel.repeat(1, 1, 1, 1)
+        self.gaussian_kernel = gaussian_kernel.repeat(1, 1, 1, 1)
 
         padding = (kernel_size - 1) // 2
         gaussian = nn.Conv2d(1, 1, kernel_size=kernel_size, padding=padding, bias=False)
@@ -30,6 +30,7 @@ class Gaussian(nn.Module):
         gaussian.padding = (padding, padding)
         self.op = gaussian
         self.op.requires_grad_(True)
+        self.op.weight.detach_()
 
     def forward(self, *input):
         return self.op(*input)
