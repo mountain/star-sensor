@@ -216,14 +216,34 @@ class Locator(nn.Module):
         return y.view(1, 4)
 
 
-class Derivative(nn.Module):
+class Flow(nn.Module):
 
-    def __init__(self, model):
+    def __init__(self):
         super().__init__()
-        self.model = model
+        self.skyview = Skyview()
+        self.estimator = Estimator()
+        self.locator = Locator()
+        self.icosahedron = Icosahedron()
+
+        self.pos = None
+
+    def qvelocity(self, x):
+        q = self.locator(th.cat((x, self.qview()), dim=1)).view(-1, 4)
+        q = q - th.sum(self.pos * q) / get_modulus(q) * self.pos
+        return q
+
+    def qview(self):
+        return self.skyview(self.pos).view(-1, 1, 512, 512)
+
+    def initialize(self, x):
+        estimate = self.estimator(th.cat((x, self.icosahedron.views), dim=1)).view(1, 73, 1)
+        return normalize(th.sum(self.icosahedron.quaternions * estimate, dim=1))
 
     def forward(self, t, x):
-        return self.model.qderivative(t, x)
+        prev = self.pos
+        curr = normalize(self.pos + self.qvelocity(x))
+        self.pos = curr
+        return curr - prev
 
 
 class Model(nn.Module):
@@ -232,62 +252,15 @@ class Model(nn.Module):
         super().__init__()
         self.skyview = Skyview()
         self.estimator = Estimator()
-        self.locator = Locator()
         self.icosahedron = Icosahedron()
-        self.one = cast(np.array([[1, 0, 0, 0]], dtype=np.float32))
-        self.one.requires_grad = False
-        self.init = self.skyview(self.one).view(1, 1, 512, 512)
-        self.init.requires_grad = False
+        self.flow = Flow()
 
-        self.pos = None
-        self.view = None
+    def forward(self, t, x):
+        q0 = self.flow.initialize(x)
+        qs = odeint(self.flow, q0, th.arange(0.0, 2.01, 1.0) / 2.0, method='rk4')
 
-        self.derivative = Derivative(self)
-
-    def qview(self):
-        return self.skyview(self.pos).view(-1, 1, 512, 512)
-
-    def qvelocity(self, x):
-        q = self.locator(th.cat((x, self.qview()), dim=1)).view(-1, 4)
-        q = q - th.sum(self.pos * q) / get_modulus(q) * self.pos
-        return q
-
-    def qinit(self, x):
-        estimate = self.estimator(th.cat((x, self.icosahedron.views), dim=1)).view(1, 73, 1)
-        qa = normalize(th.sum(self.icosahedron.quaternions * estimate, dim=1))
-        s1 = self.skyview(qa).view(-1, 1, 512, 512)
-
-        self.pos = qa
-        self.view = s1
-
-        return s1, qa
-
-    def qforward(self, x):
-        d1 = self.locator(th.cat((x, self.view), dim=1)).view(-1, 4)
-        qa = normalize(self.pos + hamilton_product(d1, self.pos))
-        s2 = self.skyview(qa).view(-1, 1, 512, 512)
-
-        self.pos = qa
-        self.view = s2
-
-        return s2, qa
-
-    def qderivative(self, t, x):
-        self.pos = normalize(self.pos + self.qvelocity(x))
-        return self.pos
-
-    def forward(self, x):
-        # s1, _ = self.qinit(x)
-        # s2, _ = self.qforward(x)
-        # s3, qa = self.qforward(x)
-        #
-        # return s1, s2, s3, qa
-
-        self.qinit(x)
-        qs = odeint(self.derivative, x, th.arange(0.0, 2.01, 1.0) / 2.0, method='rk4')
-
-        v0 = self.qview(qs[0])
-        v1 = self.qview(qs[1])
-        v2 = self.qview(qs[2])
+        v0 = self.flow.qview(qs[0])
+        v1 = self.flow.qview(qs[1])
+        v2 = self.flow.qview(qs[2])
 
         return v0, v1, v2, qs[2]
