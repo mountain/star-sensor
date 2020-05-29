@@ -149,6 +149,7 @@ class Skyview(nn.Module):
         self.magnitude_map = {
             1: th.cat([magnitude for i in range(1)], dim=0).view(1, bright_stars_count, 1),
         }
+        self.magnitude_map[1].requires_grad = False
 
         self.I = cast(np.eye(3, 3)).view(1, 3, 3)
 
