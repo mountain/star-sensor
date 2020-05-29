@@ -250,9 +250,6 @@ class Model(nn.Module):
 
     def __init__(self):
         super().__init__()
-        self.skyview = Skyview()
-        self.estimator = Estimator()
-        self.icosahedron = Icosahedron()
         self.flow = Flow()
 
     def forward(self, t, x):
