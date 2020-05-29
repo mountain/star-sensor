@@ -9,7 +9,7 @@ from torchvision.models.resnet import Bottleneck, BasicBlock, conv1x1
 from qnn.quaternion_ops import q_normalize, hamilton_product, get_modulus
 from util.sky import Skyview, cast
 from util.icosahedron import Icosahedron
-from leibniz.diffeq import odeint as odeint
+from torchdiffeq import odeint_adjoint as odeint
 
 
 logger = logging.getLogger()
