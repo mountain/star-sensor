@@ -9,7 +9,7 @@ from torchvision.models.resnet import Bottleneck, BasicBlock, conv1x1
 from qnn.quaternion_ops import q_normalize, hamilton_product, get_modulus
 from util.sky import Skyview, cast
 from util.icosahedron import Icosahedron
-from torchdiffeq import odeint_adjoint as odeint
+from torchdiffeq import odeint as odeint
 
 
 logger = logging.getLogger()
@@ -243,7 +243,8 @@ class Flow(nn.Module):
         return self.skyview(q).view(-1, 1, 512, 512)
 
     def forward(self, t, q):
-        return normalize(q + self.qvelocity(q, self.target)) - q
+        print(t)
+        return normalize(q + hamilton_product(self.qvelocity(q, self.target), q)) - q
 
 
 class Model(nn.Module):
