@@ -252,7 +252,7 @@ class Model(nn.Module):
         super().__init__()
         self.flow = Flow()
 
-    def forward(self, t, x):
+    def forward(self, x):
         q0 = self.flow.initialize(x)
         qs = odeint(self.flow, q0, th.arange(0.0, 2.01, 1.0) / 2.0, method='rk4')
 
