@@ -255,10 +255,10 @@ class Model(nn.Module):
     def forward(self, x):
         self.flow.qtarget(x)
         q0 = self.flow.qinit(x)
-        qs = odeint(self.flow, q0, th.arange(0.0, 1.01, 0.5), method='rk4')
+        qs = odeint(self.flow, q0, th.arange(0.0, 1.01, 0.25), method='rk4')
 
-        v0 = self.flow.qview(qs[0])
-        v1 = self.flow.qview(qs[1])
         v2 = self.flow.qview(qs[2])
+        v3 = self.flow.qview(qs[3])
+        v4 = self.flow.qview(qs[4])
 
-        return v0, v1, v2, qs[2]
+        return v2, v3, v4, qs[2]
