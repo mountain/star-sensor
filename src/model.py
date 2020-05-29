@@ -9,7 +9,7 @@ from torchvision.models.resnet import Bottleneck, BasicBlock, conv1x1
 from qnn.quaternion_ops import q_normalize, hamilton_product, get_modulus
 from util.sky import Skyview, cast
 from util.icosahedron import Icosahedron
-from torchdiffeq import odeint as odeint
+from torchdiffeq import odeint_adjoint as odeint
 
 
 logger = logging.getLogger()
@@ -56,7 +56,6 @@ class Estimator(nn.Module):
                                        dilate=replace_stride_with_dilation[2])
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(1152 * block.expansion, num_classes)
-        # self.softmax = nn.Softmax(1)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -217,19 +216,20 @@ class Locator(nn.Module):
 
 class Flow(nn.Module):
 
-    def __init__(self):
+    def __init__(self, skyview):
         super().__init__()
-        self.skyview = Skyview()
+        self.skyview = skyview
         self.estimator = Estimator()
         self.locator = Locator()
-        self.icosahedron = Icosahedron()
+        self.icosahedron = Icosahedron(skyview)
 
     def qtarget(self, y):
         self.target = y
 
     def qinit(self, y):
-        estimate = self.estimator(th.cat((y, self.icosahedron.views), dim=1)).view(1, 73, 1)
-        return normalize(th.sum(self.icosahedron.quaternions * estimate, dim=1))
+        quaternions, views = self.icosahedron()
+        estimate = self.estimator(th.cat((y, views), dim=1)).view(1, 73, 1)
+        return normalize(th.sum(quaternions * estimate, dim=1))
 
     def qvelocity(self, curr, trgt):
         q = self.locator(th.cat((self.qview(curr), trgt), dim=1)).view(-1, 4)
@@ -247,15 +247,16 @@ class Model(nn.Module):
 
     def __init__(self):
         super().__init__()
-        self.flow = Flow()
+        skyview = Skyview()
+        self.flow = Flow(skyview)
 
     def forward(self, x):
         self.flow.qtarget(x)
         q0 = self.flow.qinit(x)
-        qs = odeint(self.flow, q0, th.arange(0.0, 1.01, 0.25), method='rk4')
+        qs = odeint(self.flow, q0, th.arange(0.0, 1.01, 0.0625), method='rk4')
 
-        v2 = self.flow.qview(qs[-3])
-        v3 = self.flow.qview(qs[-2])
-        v4 = self.flow.qview(qs[-1])
+        vn3 = self.flow.qview(qs[-3])
+        vn2 = self.flow.qview(qs[-2])
+        vn1 = self.flow.qview(qs[-1])
 
-        return v2, v3, v4, qs[-1]
+        return vn1, vn2, vn3, qs[-1]

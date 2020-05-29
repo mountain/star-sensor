@@ -11,9 +11,9 @@ from qnn.quaternion_ops import q_normalize
 
 class Icosahedron(nn.Module):
 
-    def __init__(self):
+    def __init__(self, skyview):
         super().__init__()
-        self.skyview = Skyview()
+        self.skyview = skyview
 
         phi = (1 + np.sqrt(5)) / 2
         q01 = cast(np.array([[[0, +0, +1, +phi]]], dtype=np.float32))
@@ -33,7 +33,6 @@ class Icosahedron(nn.Module):
         icosahedron = q_normalize(th.cat((q01, q02, q03, q04,
                                    q05, q06, q07, q08,
                                    q09, q10, q11, q12), dim=1), channel=2)
-        icosahedron.requires_grad = False
 
         view0 = self.skyview(one[:, 0]).view(1, 1, 512, 512)
         view1 = self.build_view(icosahedron * np.sin(-np.pi / 3) + one * np.cos(-np.pi / 3))
@@ -72,16 +71,15 @@ class Icosahedron(nn.Module):
         view = th.cat((v01, v02, v03, v04,
                 v05, v06, v07, v08,
                 v09, v10, v11, v12), dim=1)
-        view.requires_grad = False
 
         return view
 
-    def forward(self, x):
-        return x
+    def forward(self):
+        return self.quaternions.detach(), self.views.detach()
 
 
 if __name__ == '__main__':
-    ic = Icosahedron()
+    ic = Icosahedron(Skyview())
     plot(open('charts/00.png', mode='wb'), ic.views[0, 0].detach().cpu().numpy().reshape(512, 512))
     plot(open('charts/01.png', mode='wb'), ic.views[0, 1].detach().cpu().numpy().reshape(512, 512))
     plot(open('charts/02.png', mode='wb'), ic.views[0, 2].detach().cpu().numpy().reshape(512, 512))

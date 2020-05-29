@@ -114,6 +114,7 @@ def plateu(val):
 
 
 class Skyview(nn.Module):
+
     def __init__(self):
         super(Skyview, self).__init__()
 
@@ -147,9 +148,9 @@ class Skyview(nn.Module):
         self.t22 = cast(np.array([[0, 0, 0], [0, 0, 0], [0, 0, 1]])).view(1, 1, 3, 3)
 
         self.magnitude_map = {
-            1: th.cat([magnitude for i in range(1)], dim=0).view(1, bright_stars_count, 1),
+            1: th.cat([magnitude for _ in range(1)], dim=0).view(1, bright_stars_count, 1),
         }
-        self.magnitude_map[1].requires_grad = False
+        self.magnitude_map[1].requires_grad_(False)
 
         self.I = cast(np.eye(3, 3)).view(1, 3, 3)
 
@@ -159,12 +160,7 @@ class Skyview(nn.Module):
         self.background_map = {
             1: th.cat([self.background.zero_().clone() for _ in range(1)], dim=0),
         }
-        self.background_map[1].requires_grad = False
-
-        self.frame = get_init_frame().view(-1, 3, 1, 3)
-
-        self.deg1_1d = cast([1.0 / 180 * np.pi])
-        self.rad1_2d = cast([[1.0]])
+        self.background_map[1].requires_grad_(False)
 
     def rotate(self, p1, p2):
         batchsize = p1.size()[0]
@@ -202,24 +198,6 @@ class Skyview(nn.Module):
 
         return sphere
 
-    def transfer(self, alt_v, az_v):
-        az_v = az_v * self.deg1_1d
-        alt_v = alt_v * self.deg1_1d
-
-        angle = np.pi / 2.0 - az_v
-        upward = self.frame[:, 2, 0, :]
-        rotate_f = self.xyz2rot(upward[:, 0], upward[:, 1], upward[:, 2], angle * self.rad1_2d)
-        frame = rotate_frames(rotate_f, self.frame)
-
-        angle = np.pi / 2.0 - alt_v
-        eastward = frame[:, 1, 0, :]
-        rotate_f = self.xyz2rot(eastward[:, 0], eastward[:, 1], eastward[:, 2], angle * self.rad1_2d)
-        frame = rotate_frames(rotate_f, frame)
-
-        transfer = th.inverse(frame.view(3, 3))
-
-        return transfer
-
     def mk_sky(self, points):
         batchsize = points.size()[0]
 
@@ -230,6 +208,9 @@ class Skyview(nn.Module):
             self.background_map[batchsize] = bk.expand(batchsize, bright_stars_count, 512, 512)
 
         mags = self.magnitude_map[batchsize]
+        mags.requires_grad_(False)
+        background = self.background_map[batchsize].zero_().view(-1, 512, 512).clone()
+        background.requires_grad_(False)
 
         uxs, uys, uzs = points[:, :, 0], points[:, :, 1], points[:, :, 2]  # size(batchsize, bright_stars_count, 1)
 
@@ -252,10 +233,9 @@ class Skyview(nn.Module):
         ix = (ix * (ix < 512).long() + 511 * (ix > 511).long()) * (ix >= 0).long()
         iy = (iy * (iy < 512).long() + 511 * (iy > 511).long()) * (iy >= 0).long()
 
-        background = self.background_map[batchsize].zero_().view(-1, 512, 512).clone()
         background[:, ix, iy] = th.diag(mags.view(batchsize * bright_stars_count))
         background = background.view(batchsize, bright_stars_count, 512, 512)
-        background.requires_grad = False
+        background.requires_grad_(False)
         field = th.sum(filtered.float() * background, dim=1, keepdim=True)
 
         return self.gaussian(field)

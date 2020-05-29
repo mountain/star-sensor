@@ -26,9 +26,10 @@ class Gaussian(nn.Module):
         padding = (kernel_size - 1) // 2
         gaussian = nn.Conv2d(1, 1, kernel_size=kernel_size, padding=padding, bias=False)
         gaussian.weight.data = gaussian_kernel
-        gaussian.weight.requires_grad = False
+        gaussian.weight.requires_grad_(False)
         gaussian.padding = (padding, padding)
         self.op = gaussian
+        self.op.requires_grad_(True)
 
     def forward(self, *input):
         return self.op(*input)
