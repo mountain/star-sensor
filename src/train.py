@@ -127,7 +127,7 @@ def train_model():
     for epoch in range(epochs):
         try:
             train(epoch)
-            test(epoch)
+            # test(epoch)
         except Exception as e:
             logger.exception(e)
             break
