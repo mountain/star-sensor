@@ -213,7 +213,7 @@ class Locator(nn.Module):
         y = th.flatten(y, 1)
         y = self.fc(y)
 
-        return y.view(1, 4)
+        return y.view(-1, 4)
 
 
 class Flow(nn.Module):
@@ -225,26 +225,23 @@ class Flow(nn.Module):
         self.locator = Locator()
         self.icosahedron = Icosahedron()
 
-        self.pos = None
+    def qtarget(self, y):
+        self.target = y
 
-    def qvelocity(self, x):
-        q = self.locator(th.cat((x, self.qview(self.pos)), dim=1)).view(-1, 4)
+    def qinit(self, y):
+        estimate = self.estimator(th.cat((y, self.icosahedron.views), dim=1)).view(1, 73, 1)
+        return normalize(th.sum(self.icosahedron.quaternions * estimate, dim=1))
+
+    def qvelocity(self, curr, trgt):
+        q = self.locator(th.cat((self.qview(curr), trgt), dim=1)).view(-1, 4)
         q = q - th.sum(self.pos * q) / get_modulus(q) * self.pos
         return q
 
     def qview(self, q):
         return self.skyview(q).view(-1, 1, 512, 512)
 
-    def initialize(self, x):
-        estimate = self.estimator(th.cat((x, self.icosahedron.views), dim=1)).view(1, 73, 1)
-        self.pos = normalize(th.sum(self.icosahedron.quaternions * estimate, dim=1))
-        return self.pos
-
-    def forward(self, t, x):
-        prev = self.pos
-        curr = normalize(self.pos + self.qvelocity(x))
-        self.pos = curr
-        return curr - prev
+    def forward(self, t, q):
+        return normalize(q + self.qvelocity(q, self.target)) - q
 
 
 class Model(nn.Module):
@@ -254,7 +251,8 @@ class Model(nn.Module):
         self.flow = Flow()
 
     def forward(self, x):
-        q0 = self.flow.initialize(x)
+        self.flow.qtarget(x)
+        q0 = self.flow.qinit(x)
         qs = odeint(self.flow, q0, th.arange(0.0, 2.01, 1.0) / 2.0, method='rk4')
 
         v0 = self.flow.qview(qs[0])
