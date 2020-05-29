@@ -247,7 +247,7 @@ class Skyview(nn.Module):
         background = th.cat([self.background.clone() for _ in range(batchsize)], dim=0)
         background[:, ix, iy] = th.diag(mags.view(batchsize * bright_stars_count))
         background = background.view(batchsize, bright_stars_count, 512, 512)
-        #background.requires_grad = False
+        background.requires_grad = False
         field = th.sum(filtered.float() * background, dim=1, keepdim=True)
 
         return self.gaussian(field)
