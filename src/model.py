@@ -223,6 +223,7 @@ class Model(nn.Module):
         self.skyview = Skyview()
         self.estimator = Estimator()
         self.locator = Locator()
+        self.icosahedron = Icosahedron()
         self.one = cast(np.array([[1, 0, 0, 0]], dtype=np.float32))
         self.one.requires_grad = False
         self.init = self.skyview(self.one).view(1, 1, 512, 512)
