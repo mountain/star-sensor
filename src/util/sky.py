@@ -156,6 +156,11 @@ class Skyview(nn.Module):
         self.gaussian = Gaussian(3)
 
         self.background = th.zeros(bright_stars_count, 512, 512).to(device)
+        self.background_map = {
+            1: th.cat([self.background.zero_().clone() for _ in range(1)], dim=0),
+        }
+        self.background_map[1].requires_grad = False
+
         self.frame = get_init_frame().view(-1, 3, 1, 3)
 
         self.deg1_1d = cast([1.0 / 180 * np.pi])
@@ -244,7 +249,7 @@ class Skyview(nn.Module):
         ix = (ix * (ix < 512).long() + 511 * (ix > 511).long()) * (ix >= 0).long()
         iy = (iy * (iy < 512).long() + 511 * (iy > 511).long()) * (iy >= 0).long()
 
-        background = th.cat([self.background.clone() for _ in range(batchsize)], dim=0)
+        background = self.background_map[batchsize].zero_()
         background[:, ix, iy] = th.diag(mags.view(batchsize * bright_stars_count))
         background = background.view(batchsize, bright_stars_count, 512, 512)
         background.requires_grad = False
