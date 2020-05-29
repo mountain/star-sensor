@@ -248,7 +248,7 @@ class Model(nn.Module):
         return self.skyview(self.pos).view(-1, 1, 512, 512)
 
     def qvelocity(self, x):
-        q = self.velocity(th.cat((x, self.qview()), dim=1)).view(-1, 4)
+        q = self.locator(th.cat((x, self.qview()), dim=1)).view(-1, 4)
         q = q - th.sum(self.pos * q) / get_modulus(q) * self.pos
         return q
 
