@@ -253,10 +253,9 @@ class Model(nn.Module):
         return q
 
     def qinit(self, x):
-        batch = x.size()[0]
         estimate = self.estimator(th.cat((x, self.icosahedron.views), dim=1)).view(1, 73, 1)
         qa = normalize(th.sum(self.icosahedron.quaternions * estimate, dim=1))
-        s1 = self.skyview(qa).view(batch, 1, 512, 512)
+        s1 = self.skyview(qa).view(-1, 1, 512, 512)
 
         self.pos = qa
         self.view = s1
@@ -286,6 +285,7 @@ class Model(nn.Module):
 
         self.qinit(x)
         qs = odeint(self.derivative, x, th.arange(0.0, 2.01, 1.0) / 2.0, method='rk4')
+
         v0 = self.qview(qs[0])
         v1 = self.qview(qs[1])
         v2 = self.qview(qs[2])
