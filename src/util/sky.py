@@ -252,7 +252,7 @@ class Skyview(nn.Module):
         ix = (ix * (ix < 512).long() + 511 * (ix > 511).long()) * (ix >= 0).long()
         iy = (iy * (iy < 512).long() + 511 * (iy > 511).long()) * (iy >= 0).long()
 
-        background = self.background_map[batchsize].zero_().view(-1, 512, 512)
+        background = self.background_map[batchsize].zero_().view(-1, 512, 512).clone()
         background[:, ix, iy] = th.diag(mags.view(batchsize * bright_stars_count))
         background = background.view(batchsize, bright_stars_count, 512, 512)
         background.requires_grad = False
