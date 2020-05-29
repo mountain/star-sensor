@@ -154,8 +154,6 @@ class Skyview(nn.Module):
 
         self.I = cast(np.eye(3, 3)).view(1, 3, 3)
 
-        self.gaussian = Gaussian(3)
-
         self.background = th.zeros(1, bright_stars_count, 512, 512).to(device)
         self.background_map = {
             1: th.cat([self.background.zero_().clone() for _ in range(1)], dim=0),
@@ -238,7 +236,7 @@ class Skyview(nn.Module):
         background.requires_grad_(False)
         field = th.sum(filtered.float() * background, dim=1, keepdim=True)
 
-        return self.gaussian(field)
+        return field
 
     def forward(self, qs):
         sphere = self.sphere() # size(1, bright_stars_count, 3, 1)
