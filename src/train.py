@@ -74,9 +74,9 @@ def train_model():
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Loss: {loss.item()}')
-            logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | SLoss: {sloss.item()}')
-            logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | QLoss: {qloss.item()}')
+            logger.info(f'Epoch: {epoch:03d} | Step: {step:03d} | Loss: {loss.item()}')
+            logger.info(f'Epoch: {epoch:03d} | Step: {step:03d} | SLoss: {sloss.item()}')
+            logger.info(f'Epoch: {epoch:03d} | Step: {step:03d} | QLoss: {qloss.item()}')
 
             loss_per_100 += loss.item()
             loss_per_epoch += loss.item()
@@ -87,10 +87,10 @@ def train_model():
                 plot(open('2.png', mode='wb'), im2[0].detach().cpu().numpy().reshape(512, 512))
                 plot(open('3.png', mode='wb'), im3[0].detach().cpu().numpy().reshape(512, 512))
 
-                logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Loss10: {loss_per_100 / 10.0}')
+                logger.info(f'Epoch: {epoch:03d} | Step: {step:03d} | Loss10: {loss_per_100 / 10.0}')
                 loss_per_100 = 0.0
 
-        logger.info(f'Epoch: {epoch + 1:03d} | Train Loss: {loss_per_epoch / dataloader.dataset.size}')
+        logger.info(f'Epoch: {epoch:03d} | Train Loss: {loss_per_epoch / dataloader.dataset.size}')
 
     def test(epoch):
         mdl.eval()
