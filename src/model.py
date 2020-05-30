@@ -235,7 +235,6 @@ class Flow(nn.Module):
 
     def qvelocity(self, curr, trgt):
         q = self.locator(th.cat((self.qview(curr), trgt), dim=1)).view(-1, 4)
-        q = q - th.sum(curr * q) / get_modulus(q) * curr
         return q
 
     def qview(self, q):
