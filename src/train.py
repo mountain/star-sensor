@@ -38,8 +38,8 @@ logger.addHandler(fileHandler)
 
 dataset_train = StarDataset(1000)
 dataset_test = StarDataset(100)
-dataloader_train = DataLoader(dataset_train, batch_size=1, shuffle=True, num_workers=0)
-dataloader_test = DataLoader(dataset_test, batch_size=1, shuffle=True, num_workers=0)
+dataloader_train = DataLoader(dataset_train, batch_size=5, shuffle=False, num_workers=0)
+dataloader_test = DataLoader(dataset_test, batch_size=1, shuffle=False, num_workers=0)
 
 
 def train_model():
@@ -85,9 +85,9 @@ def train_model():
 
             if step % 100 == 0:
                 plot(open('0.png', mode='wb'), stars[0, 0].detach().cpu().numpy().reshape(512, 512))
-                plot(open('1.png', mode='wb'), im1.detach().cpu().numpy().reshape(512, 512))
-                plot(open('2.png', mode='wb'), im2.detach().cpu().numpy().reshape(512, 512))
-                plot(open('3.png', mode='wb'), im3.detach().cpu().numpy().reshape(512, 512))
+                plot(open('1.png', mode='wb'), im1[0].detach().cpu().numpy().reshape(512, 512))
+                plot(open('2.png', mode='wb'), im2[0].detach().cpu().numpy().reshape(512, 512))
+                plot(open('3.png', mode='wb'), im3[0].detach().cpu().numpy().reshape(512, 512))
 
                 logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Loss per 100: {loss_per_100 / 100.0}')
                 loss_per_100 = 0.0
