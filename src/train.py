@@ -87,7 +87,7 @@ def train_model():
                 plot(open('2.png', mode='wb'), im2[0].detach().cpu().numpy().reshape(512, 512))
                 plot(open('3.png', mode='wb'), im3[0].detach().cpu().numpy().reshape(512, 512))
 
-                logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Loss per 100: {loss_per_100 / 100.0}')
+                logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Loss10: {loss_per_100 / 10.0}')
                 loss_per_100 = 0.0
 
         logger.info(f'Epoch: {epoch + 1:03d} | Train Loss: {loss_per_epoch / dataloader.dataset.size}')
