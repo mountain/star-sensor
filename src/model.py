@@ -261,5 +261,6 @@ class Model(nn.Module):
         vn3 = self.flow.qview(qs[-3])
         vn2 = self.flow.qview(qs[-2])
         vn1 = self.flow.qview(qs[-1])
+        logger.info(f'view: {vn1.max().item():0.6f} {vn1.min().item():0.6f} {vn1.mean().item():0.6f}')
 
         return vn1, vn2, vn3, qs[-1]
