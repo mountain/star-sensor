@@ -253,7 +253,7 @@ class Model(nn.Module):
     def forward(self, x):
         self.flow.qtarget(x)
         q0 = self.flow.qinit(x)
-        qs = odeint(self.flow, q0, th.arange(0.0, 1.01, 0.25), method='adaptive_heun')
+        qs = odeint(self.flow, q0, th.arange(0.0, 1.01, 0.25), method='dopri5', rtol=1e-2, atol=1e-2)
 
         vn3 = self.flow.qview(qs[-3])
         vn2 = self.flow.qview(qs[-2])
