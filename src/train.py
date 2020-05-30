@@ -48,10 +48,8 @@ def train_model():
     epochs = 500
     logger.info('lr: {}, wd: {}'.format(lr, wd))
     mdl = Model()
-    gss = Gaussian(5)
     if th.cuda.is_available():
         mdl = mdl.cuda()
-        gss = gss.cuda()
     optimizer = th.optim.AdamW(mdl.parameters(), lr=lr, weight_decay=wd)
     mse = nn.MSELoss()
 
@@ -68,8 +66,8 @@ def train_model():
                 q = q.cuda()
 
             im3, im2, im1, qns = mdl(stars)
-            ims = gss(im3)
-            sts = gss(stars)
+            ims = Gaussian(5)(im3)
+            sts = Gaussian(5)(stars)
             sloss = mse(ims, sts) * 512 * 512
             qloss = mse(qns, q)
             loss = sloss + qloss
@@ -108,7 +106,7 @@ def train_model():
             im3, im2, im1, qns = mdl(stars)
             ims = gss(im3)
             sts = gss(stars)
-            sloss = mse(ims, sts) * 512 * 512 / 32
+            sloss = mse(ims, sts) * 512 * 512
             qloss = mse(qns, q)
             loss = sloss + qloss
             logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Loss: {loss.item()}')
