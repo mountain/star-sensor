@@ -4,11 +4,14 @@ import os
 import numpy as np
 import torch as th
 import torch.nn as nn
+import logging
 
 from skyfield.api import Star
-
 from util.stars import bright_stars_count, filtered
 from util.gauss import Gaussian
+
+
+logger = logging.getLogger()
 
 if th.cuda.is_available():
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
@@ -235,6 +238,7 @@ class Skyview(nn.Module):
         background = background.view(batchsize, bright_stars_count, 512, 512)
         background.requires_grad_(False)
         field = th.sum(filtered.float() * background, dim=1, keepdim=True)
+        logger.info(f'field: {field.max().item():0.6f} {field.min().item():0.6f} {field.mean().item():0.6f}')
 
         return Gaussian(3)(field)
 
