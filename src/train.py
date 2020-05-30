@@ -81,7 +81,7 @@ def train_model():
             loss_per_100 += loss.item()
             loss_per_epoch += loss.item()
 
-            if step % 100 == 0:
+            if step % 10 == 0:
                 plot(open('0.png', mode='wb'), stars[0, 0].detach().cpu().numpy().reshape(512, 512))
                 plot(open('1.png', mode='wb'), im1[0].detach().cpu().numpy().reshape(512, 512))
                 plot(open('2.png', mode='wb'), im2[0].detach().cpu().numpy().reshape(512, 512))
