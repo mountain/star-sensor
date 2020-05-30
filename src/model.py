@@ -235,6 +235,8 @@ class Flow(nn.Module):
 
     def qvelocity(self, curr, trgt):
         q = self.locator(th.cat((self.qview(curr), trgt), dim=1)).view(-1, 4)
+        q = hamilton_product(q, curr)
+        q = q - th.sum(curr * q) / get_modulus(q) * curr
         return q
 
     def qview(self, q):
@@ -244,7 +246,7 @@ class Flow(nn.Module):
 
     def forward(self, t, q):
         #logger.info(f't: {t.item():0.4f}')
-        return normalize(q + hamilton_product(self.qvelocity(q, self.target), q)) - q
+        return self.qvelocity(q, self.target)
 
 
 class Model(nn.Module):
