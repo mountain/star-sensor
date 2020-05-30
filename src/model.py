@@ -226,7 +226,10 @@ class Flow(nn.Module):
         self.target = y
 
     def qinit(self, y):
+        batch = y.size()[0]
         quaternions, views = self.icosahedron()
+        quaternions = quaternions.expand(batch, -1, -1)
+        views = views.expand(batch, -1, -1, -1)
         estimate = self.estimator(th.cat((y, views), dim=1)).view(-1, 73, 1)
         return normalize(th.sum(quaternions * estimate, dim=1))
 
