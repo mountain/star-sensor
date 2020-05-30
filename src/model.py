@@ -240,11 +240,11 @@ class Flow(nn.Module):
 
     def qview(self, q):
         view = self.skyview(q).view(-1, 1, 512, 512)
-        logger.info(f'view: {view.max().item():0.6f} {view.min().item():0.6f} {view.mean().item():0.6f}')
+        #logger.info(f'view: {view.max().item():0.6f} {view.min().item():0.6f} {view.mean().item():0.6f}')
         return view
 
     def forward(self, t, q):
-        logger.info(f't: {t.item():0.4f}')
+        #logger.info(f't: {t.item():0.4f}')
         return hamilton_product(self.qvelocity(q, self.target), q)
 
 
