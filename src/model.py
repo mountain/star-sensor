@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import numpy as np
 import torch as th
 import torch.nn as nn
 import logging
@@ -253,7 +252,7 @@ class Model(nn.Module):
     def forward(self, x):
         self.flow.qtarget(x)
         q0 = self.flow.qinit(x)
-        qs = odeint(self.flow, q0, th.arange(0.0, 1.01, 0.25), method='rk4')
+        qs = odeint(self.flow, q0, th.arange(0.0, 1.01, 0.25), method='bosh3')
 
         vn3 = self.flow.qview(qs[-3])
         vn2 = self.flow.qview(qs[-2])
