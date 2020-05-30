@@ -239,7 +239,7 @@ class Flow(nn.Module):
         return self.skyview(q).view(-1, 1, 512, 512)
 
     def forward(self, t, q):
-        logger.info(f't: {t.item():0.4f}')
+        #logger.info(f't: {t.item():0.4f}')
         return normalize(q + hamilton_product(self.qvelocity(q, self.target), q)) - q
 
 
