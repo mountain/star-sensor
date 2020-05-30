@@ -227,7 +227,7 @@ class Flow(nn.Module):
 
     def qinit(self, y):
         quaternions, views = self.icosahedron()
-        estimate = self.estimator(th.cat((y, views), dim=1)).view(1, 73, 1)
+        estimate = self.estimator(th.cat((y, views), dim=1)).view(-1, 73, 1)
         return normalize(th.sum(quaternions * estimate, dim=1))
 
     def qvelocity(self, curr, trgt):
