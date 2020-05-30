@@ -242,6 +242,6 @@ class Skyview(nn.Module):
         sphere = self.sphere() # size(1, bright_stars_count, 3, 1)
         transfer = self.q2rot(qs) # size(batch, 3, 3)
         sphere = rotate_points(transfer, sphere)
-        sky = self.mk_sky(sphere).view(512, 512)
+        sky = self.mk_sky(sphere).view(-1, 1, 512, 512)
 
         return sky
