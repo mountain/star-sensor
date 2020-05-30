@@ -68,7 +68,7 @@ def train_model():
             im3, im2, im1, qns = mdl(stars)
             ims = Gaussian(5)(im3)
             sts = Gaussian(5)(stars)
-            sloss = mse(ims, sts) * 512 / 3
+            sloss = mse(ims, sts) * 512 * 4
             qloss = mse(qns, q)
             loss = sloss + qloss
             optimizer.zero_grad()
@@ -106,7 +106,7 @@ def train_model():
             im3, im2, im1, qns = mdl(stars)
             ims = Gaussian(5)(im3)
             sts = Gaussian(5)(stars)
-            sloss = mse(ims, sts) * 512 / 3
+            sloss = mse(ims, sts) * 512 * 4
             qloss = mse(qns, q)
             loss = sloss + qloss
             logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Loss: {loss.item()}')
