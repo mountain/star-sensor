@@ -70,7 +70,7 @@ def train_model():
             tloss = mmse(target, stars)
             rloss = mmse(result, stars)
             qloss = mse(qns, q)
-            loss = rloss + tloss + qloss
+            loss = rloss + tloss
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
