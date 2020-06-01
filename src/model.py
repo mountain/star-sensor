@@ -253,7 +253,8 @@ class Flow(nn.Module):
 
     def qdelta(self, qcurr, vtrgt):
         qd = self.estimator(th.cat((self.qview(qcurr), vtrgt), dim=1)).view(-1, 4)
-        qtangent = qcurr + qd - th.sum((qcurr + qd) * qcurr, dim=1, keepdim=True) / get_modulus(qcurr + qd) / get_modulus(qcurr) * qcurr
+        qtrgt = q_normalize(qcurr + qd)
+        qtangent = qtrgt - th.sum(qtrgt * qcurr, dim=1, keepdim=True) / get_modulus(qtrgt) / get_modulus(qcurr) * qcurr
         logger.info(f'qdelta: {th.sum(qtangent * qcurr, dim=1, keepdim=True).max().item()}')
         return qtangent
 
