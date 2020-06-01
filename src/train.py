@@ -89,28 +89,6 @@ def train_model():
 
         logger.info(f'Epoch: {epoch:03d} | Train Loss: {loss_per_epoch / dataloader.dataset.size}')
 
-    def test(epoch):
-        mdl.eval()
-        dataloader = dataloader_test
-        loss_per_epoch = 0.0
-        for step, sample in enumerate(dataloader):
-            q = th.FloatTensor(sample['q']).view(-1, 4)
-            stars = th.FloatTensor(sample['stars']).view(-1, 1, 512, 512)
-            if th.cuda.is_available():
-                stars = stars.cuda()
-                q = q.cuda()
-
-            im3, im2, im1, qns = mdl(stars)
-            ims = Gaussian(5)(im3)
-            sts = Gaussian(5)(stars)
-            sloss = mse(ims, sts) * 512 * 4
-            qloss = mse(qns, q)
-            loss = sloss + qloss
-            logger.info(f'Epoch: {epoch + 1:03d} | Step: {step + 1:03d} | Loss: {loss.item()}')
-            loss_per_epoch += loss.item()
-
-        logger.info(f'Epoch: {epoch + 1:03d} | Test Loss: {loss_per_epoch / dataloader.dataset.size}')
-
         th.save({
             'net': mdl.state_dict(),
             'optimizer': optimizer.state_dict(),
@@ -122,7 +100,6 @@ def train_model():
     for epoch in range(epochs):
         try:
             train(epoch)
-            # test(epoch)
         except Exception as e:
             logger.exception(e)
             break

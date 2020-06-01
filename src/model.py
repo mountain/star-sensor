@@ -251,14 +251,14 @@ class Flow(nn.Module):
     def qvelocity(self, qcurr, vtrgt):
         qtrgt = normalize(self.locator(vtrgt).view(-1, 4))
         qtangent = qtrgt - th.sum(qtrgt * qcurr, dim=1, keepdim=True) / length(qcurr) / length(qtrgt) * qcurr
-        logger.info(f'qvelocity: {th.sum(qtangent * qcurr, dim=1, keepdim=True).max().item()}')
+        #logger.info(f'qvelocity: {th.sum(qtangent * qcurr, dim=1, keepdim=True).max().item()}')
         return qtangent
 
     def qdelta(self, qcurr, vtrgt):
         qd = self.estimator(th.cat((self.qview(qcurr), vtrgt), dim=1)).view(-1, 4)
         qtrgt = normalize(qcurr + qd)
         qtangent = qtrgt - th.sum(qtrgt * qcurr, dim=1, keepdim=True) / length(qcurr) / length(qtrgt) * qcurr
-        logger.info(f'qdelta: {th.sum(qtangent * qcurr, dim=1, keepdim=True).max().item()}')
+        #logger.info(f'qdelta: {th.sum(qtangent * qcurr, dim=1, keepdim=True).max().item()}')
         return qtangent
 
     def forward(self, t, q):
@@ -275,10 +275,10 @@ class Model(nn.Module):
     def forward(self, x):
         qt = self.flow.target(x)
         q0 = self.flow.qinit(x)
-        logger.info(f'length_0: {length(q0).max().item()}')
+        #logger.info(f'length_0: {length(q0).max().item()}')
         qs = odeint(self.flow, q0, th.arange(0.0, 3.01, 0.3), method='bosh3', rtol=0.1, atol=0.1)
 
-        for i in range(qs.size()[0]):
-            logger.info(f'length_{i + 1}: {length(qs[i]).max().item()}')
+        #for i in range(qs.size()[0]):
+        #    logger.info(f'length_{i + 1}: {length(qs[i]).max().item()}')
 
         return self.skyview(qt), self.skyview(qs[-1]), qs[-1]
