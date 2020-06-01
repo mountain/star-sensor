@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader
 
 from model import Model
 from data import StarDataset
-from util.gauss import Gaussian
+from util.multiscale import MultiscaleMSELoss
 from util.plotter import plot
 
 
@@ -51,8 +51,8 @@ def train_model():
     if th.cuda.is_available():
         mdl = mdl.cuda()
     optimizer = th.optim.AdamW(mdl.parameters(), lr=lr, weight_decay=wd)
+    mmse = MultiscaleMSELoss()
     mse = nn.MSELoss()
-    bce = nn.BCEWithLogitsLoss()
 
     def train(epoch):
         mdl.train()
@@ -67,11 +67,8 @@ def train_model():
                 q = q.cuda()
 
             result, target, qns = mdl(stars)
-            sts = Gaussian(5)(stars)
-            rsl = Gaussian(5)(result)
-            tgt = Gaussian(5)(target)
-            sloss = bce(rsl, sts)
-            tloss = bce(tgt, sts)
+            sloss = mmse(result, stars)
+            tloss = mmse(target, stars)
             qloss = mse(qns, q)
             loss = sloss + tloss + qloss
             optimizer.zero_grad()
