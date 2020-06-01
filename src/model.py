@@ -251,7 +251,7 @@ class Flow(nn.Module):
         return qtangent * get_modulus(qtrgt - qcurr)
 
     def qdelta(self, qcurr, vtrgt):
-        qd = q_normalize(self.estimator(th.cat((self.qview(qcurr), vtrgt), dim=1)).view(-1, 4))
+        qd = self.estimator(th.cat((self.qview(qcurr), vtrgt), dim=1)).view(-1, 4)
         qtangent = q_normalize(qcurr + qd - th.sum((qcurr + qd) * qcurr, dim=1, keepdim=True) * qcurr)
         return qtangent * get_modulus(qd)
 
@@ -272,6 +272,6 @@ class Model(nn.Module):
         qs = odeint(self.flow, q0, th.arange(0.0, 3.01, 0.3), method='bosh3', rtol=0.1, atol=0.1)
 
         for i in range(qs.size()[0]):
-            print(f'modulus: {get_modulus(qs[i]).item()}')
+            logger.info(f'modulus: {get_modulus(qs[i]).item()}')
 
         return self.skyview(qt), self.skyview(qs[-1]), qs[-1]
