@@ -247,14 +247,14 @@ class Flow(nn.Module):
 
     def qvelocity(self, qcurr, vtrgt):
         qtrgt = q_normalize(self.locator(vtrgt).view(-1, 4))
-        qtangent = qtrgt - th.sum(qtrgt * qcurr, dim=1, keepdim=True) / get_modulus(qtrgt) / get_modulus(qcurr) * qcurr
+        qtangent = qtrgt - th.sum(qtrgt * qcurr, dim=1, keepdim=True) / get_modulus(qcurr)
         logger.info(f'qvelocity: {th.sum(qtangent * qcurr, dim=1, keepdim=True).max().item()}')
         return qtangent
 
     def qdelta(self, qcurr, vtrgt):
         qd = self.estimator(th.cat((self.qview(qcurr), vtrgt), dim=1)).view(-1, 4)
         qtrgt = q_normalize(qcurr + qd)
-        qtangent = qtrgt - th.sum(qtrgt * qcurr, dim=1, keepdim=True) / get_modulus(qtrgt) / get_modulus(qcurr) * qcurr
+        qtangent = qtrgt - th.sum(qtrgt * qcurr, dim=1, keepdim=True) / get_modulus(qcurr)
         logger.info(f'qdelta: {th.sum(qtangent * qcurr, dim=1, keepdim=True).max().item()}')
         return qtangent
 
