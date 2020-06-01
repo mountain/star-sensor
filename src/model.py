@@ -231,9 +231,9 @@ class Flow(nn.Module):
         phi = (th.rand(batch, 1) - 0.5) * np.pi
         alpha = th.rand(batch, 1) * 2 * np.pi
         a = th.cos(alpha / 2)
-        b = th.sin(alpha / 2) * th.sin(phi) * th.cos(theta)
-        c = th.sin(alpha / 2) * th.sin(phi) * th.sin(theta)
-        d = th.sin(alpha / 2) * th.cos(phi)
+        b = th.sin(alpha / 2) * th.cos(phi) * th.cos(theta)
+        c = th.sin(alpha / 2) * th.cos(phi) * th.sin(theta)
+        d = th.sin(alpha / 2) * th.sin(phi)
 
         r = th.cat((a, b, c, d), dim=1)
         logger.info(f'init: {get_modulus(r).max().item()}')
