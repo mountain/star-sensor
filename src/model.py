@@ -143,7 +143,7 @@ class Flow(nn.Module):
         return r
 
     def qview(self, q):
-        view = self.skyview(q).view(-1, 1, 512, 512)
+        view = self.skyview(q.view(-1, 4)).view(-1, 1, 512, 512)
         #logger.info(f'view: {view.max().item():0.6f} {view.min().item():0.6f} {view.mean().item():0.6f}')
         return view
 
