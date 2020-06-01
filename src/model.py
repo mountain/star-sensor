@@ -172,4 +172,4 @@ class Model(nn.Module):
         vn2 = self.flow.qview(qs[-2])
         vn1 = self.flow.qview(qs[-1])
 
-        return vn1, vn2, vn3, qs[-1], self.flow.skyview(qt)
+        return vn1, vn2, vn3, self.flow.skyview(qt), qs[-1]
