@@ -12,6 +12,7 @@ class MultiscaleMSELoss(Module):
     def forward(self, input, target):
         i, t, l = input, target, 0
         while i.size()[-1] > 1 and i.size()[-2] > 1:
+            print(i.size())
             l += F.mse_loss(input, target, reduction='mean')
             i, t = self.maxpool(i), self.maxpool(t)
         return l
