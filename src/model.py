@@ -251,7 +251,7 @@ class Flow(nn.Module):
         return qtangent * get_modulus(qtrgt - qcurr)
 
     def qdelta(self, qcurr, vtrgt):
-        qd = q_normalize(self.estimator(th.cat((self.qview(qcurr), vtrgt))).view(-1, 4))
+        qd = q_normalize(self.estimator(th.cat((self.qview(qcurr), vtrgt), dim=1)).view(-1, 4))
         qtangent = q_normalize(qcurr + qd - th.sum((qcurr + qd) * qcurr, dim=1, keepdim=True) * qcurr)
         return qtangent * get_modulus(qd)
 
