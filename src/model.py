@@ -168,4 +168,4 @@ class Model(nn.Module):
         q0 = self.flow.qinit(x)
         qs = odeint(self.flow, q0, th.arange(0.0, 3.0, 0.3), method='rk4')
 
-        return self.skyview(qt), self.qview(qs[-1]), qs[-1]
+        return self.skyview(qt), self.skyview(qs[-1]), qs[-1]
