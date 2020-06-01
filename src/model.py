@@ -272,9 +272,10 @@ class Model(nn.Module):
     def forward(self, x):
         qt = self.flow.target(x)
         q0 = self.flow.qinit(x)
+        logger.info(f'modulus_0: {get_modulus(q0).item()}')
         qs = odeint(self.flow, q0, th.arange(0.0, 3.01, 0.3), method='bosh3', rtol=0.1, atol=0.1)
 
         for i in range(qs.size()[0]):
-            logger.info(f'modulus: {get_modulus(qs[i]).item()}')
+            logger.info(f'modulus_{i + 1}: {get_modulus(qs[i]).item()}')
 
         return self.skyview(qt), self.skyview(qs[-1]), qs[-1]
