@@ -235,8 +235,8 @@ class Flow(nn.Module):
         c = th.sin(alpha / 2) * th.cos(phi) * th.sin(theta)
         d = th.sin(alpha / 2) * th.sin(phi)
 
-        r = q_normalize(th.cat((a, b, c, d), dim=1))
-        logger.info(f'init: {get_modulus(r).max().item()}')
+        r = th.cat((a, b, c, d), dim=1)
+        logger.info(f'init: {th.sum(r * r, dim=1).max().item()}')
         if th.cuda.is_available():
             r = r.cuda()
 
