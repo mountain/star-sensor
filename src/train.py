@@ -65,11 +65,11 @@ def train_model():
                 stars = stars.cuda()
                 q = q.cuda()
 
-            im3, im2, im1, target, qns = mdl(stars)
-            ims = Gaussian(5)(im3)
+            result, target, qns = mdl(stars)
             sts = Gaussian(5)(stars)
+            rsl = Gaussian(5)(result)
             tgt = Gaussian(5)(target)
-            sloss = mse(ims, sts) * 512 * 4
+            sloss = mse(rsl, sts) * 512 * 4
             tloss = mse(tgt, sts) * 512 * 4
             qloss = mse(qns, q)
             loss = sloss + tloss + qloss
