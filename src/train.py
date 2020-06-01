@@ -74,10 +74,7 @@ def train_model():
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            logger.info(f'Epoch: {epoch:03d} | Step: {step:03d} | Loss: {loss.item()}')
-            logger.info(f'Epoch: {epoch:03d} | Step: {step:03d} | SLoss: {sloss.item()}')
-            logger.info(f'Epoch: {epoch:03d} | Step: {step:03d} | TLoss: {tloss.item()}')
-            logger.info(f'Epoch: {epoch:03d} | Step: {step:03d} | QLoss: {qloss.item()}')
+            logger.info(f'Epoch: {epoch:03d} | Step: {step:03d} | Loss: {loss.item()} | SLoss: {sloss.item()} | TLoss: {tloss.item()} | QLoss: {qloss.item()}')
 
             loss_per_100 += loss.item()
             loss_per_epoch += loss.item()

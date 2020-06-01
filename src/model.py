@@ -160,13 +160,12 @@ class Model(nn.Module):
 
     def __init__(self):
         super().__init__()
-        skyview = Skyview()
-        self.flow = Flow(skyview)
+        self.skyview = Skyview()
+        self.flow = Flow(self.skyview)
 
     def forward(self, x):
         qt = self.flow.target(x)
         q0 = self.flow.qinit(x)
         qs = odeint(self.flow, q0, th.arange(0.0, 3.0, 0.3), method='rk4')
-        vn1 = self.flow.qview(qs[-1])
 
-        return vn1, self.flow.skyview(qt), qs[-1]
+        return self.skyview(qt), self.qview(qs[-1]), qs[-1]
