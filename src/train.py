@@ -52,6 +52,7 @@ def train_model():
         mdl = mdl.cuda()
     optimizer = th.optim.AdamW(mdl.parameters(), lr=lr, weight_decay=wd)
     mse = nn.MSELoss()
+    bce = nn.BCEWithLogitsLoss()
 
     def train(epoch):
         mdl.train()
@@ -69,8 +70,8 @@ def train_model():
             sts = Gaussian(5)(stars)
             rsl = Gaussian(5)(result)
             tgt = Gaussian(5)(target)
-            sloss = mse(rsl, sts) * 512 * 4
-            tloss = mse(tgt, sts) * 512 * 4
+            sloss = bce(rsl, sts)
+            tloss = bce(tgt, sts)
             qloss = mse(qns, q)
             loss = sloss + tloss + qloss
             optimizer.zero_grad()
