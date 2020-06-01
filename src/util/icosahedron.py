@@ -35,9 +35,9 @@ class Icosahedron(nn.Module):
                                    q09, q10, q11, q12), dim=1), channel=2)
 
         view0 = self.skyview(one[:, 0]).view(1, 1, 512, 512)
-        view1 = self.build_view(icosahedron * np.sin(-np.pi / 3) + one * np.cos(-np.pi / 3))
-        view2 = self.build_view(icosahedron * np.sin(-np.pi / 6) + one * np.cos(-np.pi / 6))
-        view3 = self.build_view(icosahedron * np.sin(+np.pi * 0) + one * np.cos(+np.pi * 0))
+        view1 = self.build_view(icosahedron * np.sin(-np.pi / 2) + one * np.cos(-np.pi / 3))
+        view2 = self.build_view(icosahedron * np.sin(-np.pi / 3) + one * np.cos(-np.pi / 6))
+        view3 = self.build_view(icosahedron * np.sin(-np.pi / 6) + one * np.cos(+np.pi * 0))
         view4 = self.build_view(icosahedron * np.sin(+np.pi / 6) + one * np.cos(+np.pi / 6))
         view5 = self.build_view(icosahedron * np.sin(+np.pi / 3) + one * np.cos(+np.pi / 3))
         view6 = self.build_view(icosahedron * np.sin(+np.pi / 2) + one * np.cos(+np.pi / 2))

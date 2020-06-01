@@ -28,7 +28,7 @@ class Locator(nn.Module):
         self._norm_layer = norm_layer
         layers = [2, 2, 2, 2]
         num_classes = 4
-        inchannel = 2
+        inchannel = 1
 
         self.inplanes = 64
         self.dilation = 1
@@ -123,8 +123,9 @@ class Flow(nn.Module):
         self.skyview = skyview
         self.locator = Locator()
 
-    def qtarget(self, y):
-        self.target = y
+    def target(self, y):
+        self.vtarget = y
+        return q_normalize(self.locator(y).view(-1, 4))
 
     def qinit(self, y):
         batch = y.size()[0]
@@ -144,16 +145,15 @@ class Flow(nn.Module):
 
     def qview(self, q):
         view = self.skyview(q.view(-1, 4)).view(-1, 1, 512, 512)
-        #logger.info(f'view: {view.max().item():0.6f} {view.min().item():0.6f} {view.mean().item():0.6f}')
         return view
 
     def qvelocity(self, qcurr, vtrgt):
-        qdelta = self.locator(th.cat((self.qview(qcurr), vtrgt), dim=1)).view(-1, 4)
-        qtangent = q_normalize(qdelta - th.sum(qdelta * qcurr, dim=1, keepdim=True) * qcurr)
-        return qtangent * (th.exp(get_modulus(qdelta)) - 1)
+        qtrgt = q_normalize(self.locator(vtrgt).view(-1, 4))
+        qtangent = q_normalize(qtrgt - th.sum(qtrgt * qcurr, dim=1, keepdim=True) * qcurr)
+        return qtangent * (th.exp(get_modulus(qtrgt - qcurr)) - 1)
 
     def forward(self, t, q):
-        return self.qvelocity(q, self.target)
+        return self.qvelocity(q, self.vtarget)
 
 
 class Model(nn.Module):
@@ -164,12 +164,12 @@ class Model(nn.Module):
         self.flow = Flow(skyview)
 
     def forward(self, x):
-        self.flow.qtarget(x)
+        qt = self.flow.target(x)
         q0 = self.flow.qinit(x)
         qs = odeint(self.flow, q0, th.arange(0.0, 3.0, 0.3), method='rk4')
 
-        vn3 = self.flow.qview(q_normalize(qs[-3]))
-        vn2 = self.flow.qview(q_normalize(qs[-2]))
-        vn1 = self.flow.qview(q_normalize(qs[-1]))
+        vn3 = self.flow.qview(qs[-3])
+        vn2 = self.flow.qview(qs[-2])
+        vn1 = self.flow.qview(qs[-1])
 
-        return vn1, vn2, vn3, qs[-1]
+        return vn1, vn2, vn3, qs[-1], self.flow.skyview(qt)
