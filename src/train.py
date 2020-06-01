@@ -86,10 +86,8 @@ def train_model():
 
             if step % 10 == 0:
                 plot(open('o.png', mode='wb'), stars[0, 0].detach().cpu().numpy().reshape(512, 512))
-                plot(open('t.png', mode='wb'), tgt[0].detach().cpu().numpy().reshape(512, 512))
-                plot(open('p1.png', mode='wb'), im1[0].detach().cpu().numpy().reshape(512, 512))
-                plot(open('p2.png', mode='wb'), im2[0].detach().cpu().numpy().reshape(512, 512))
-                plot(open('p3.png', mode='wb'), im3[0].detach().cpu().numpy().reshape(512, 512))
+                plot(open('t.png', mode='wb'), target[0].detach().cpu().numpy().reshape(512, 512))
+                plot(open('r.png', mode='wb'), result[0].detach().cpu().numpy().reshape(512, 512))
 
                 logger.info(f'Epoch: {epoch:03d} | Step: {step:03d} | Loss10: {loss_per_100 / 10.0}')
                 loss_per_100 = 0.0
