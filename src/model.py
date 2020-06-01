@@ -6,9 +6,8 @@ import torch.nn as nn
 import logging
 
 from torchvision.models.resnet import Bottleneck, BasicBlock, conv1x1
-from qnn.quaternion_ops import q_normalize, hamilton_product, get_modulus
-from util.sky import Skyview, cast
-from util.icosahedron import Icosahedron
+from qnn.quaternion_ops import q_normalize, get_modulus
+from util.sky import Skyview
 from torchdiffeq import odeint_adjoint as odeint
 
 
@@ -137,7 +136,11 @@ class Flow(nn.Module):
         c = th.sin(alpha / 2) * th.sin(phi) * th.sin(theta)
         d = th.sin(alpha / 2) * th.cos(phi)
 
-        return th.cat((a, b, c, d), dim=1)
+        r = th.cat((a, b, c, d), dim=1)
+        if th.cuda.is_available():
+            r = r.cuda()
+
+        return r
 
     def qview(self, q):
         view = self.skyview(q).view(-1, 1, 512, 512)
