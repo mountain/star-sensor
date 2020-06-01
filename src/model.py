@@ -148,7 +148,7 @@ class Flow(nn.Module):
         return view
 
     def qvelocity(self, qcurr, vtrgt):
-        qdelt = self.locator(th.cat(self.qview(qcurr), vtrgt)).view(-1, 4)
+        qdelt = self.locator(th.cat((self.qview(qcurr), vtrgt), dim=1)).view(-1, 4)
         return normalize(qdelt) * th.exp(get_modulus(qdelt))
 
     def forward(self, t, q):
