@@ -15,7 +15,7 @@ logger = logging.getLogger()
 
 
 def length(q):
-    return th.sqrt(th.sum(q * q, dim=1))
+    return th.sqrt(th.sum(q * q, dim=1, keepdim=True))
 
 
 def normalize(q):
