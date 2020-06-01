@@ -14,9 +14,12 @@ from torchdiffeq import odeint_adjoint as odeint
 logger = logging.getLogger()
 
 
+def length(q):
+    return th.sqrt(th.sum(q * q, dim=1))
+
+
 def normalize(q):
-    p = q_normalize(q)
-    return p
+    return q / length(q)
 
 
 class Locator(nn.Module):
@@ -223,7 +226,7 @@ class Flow(nn.Module):
 
     def target(self, y):
         self.vtarget = y
-        return q_normalize(self.locator(y).view(-1, 4))
+        return normalize(self.locator(y).view(-1, 4))
 
     def qinit(self, y):
         batch = y.size()[0]
@@ -236,7 +239,6 @@ class Flow(nn.Module):
         d = th.sin(alpha / 2) * th.sin(phi)
 
         r = th.cat((a, b, c, d), dim=1)
-        logger.info(f'init: {th.sum(r * r, dim=1).max().item()}')
         if th.cuda.is_available():
             r = r.cuda()
 
@@ -247,15 +249,15 @@ class Flow(nn.Module):
         return view
 
     def qvelocity(self, qcurr, vtrgt):
-        qtrgt = q_normalize(self.locator(vtrgt).view(-1, 4))
-        qtangent = qtrgt - th.sum(qtrgt * qcurr, dim=1, keepdim=True) / get_modulus(qcurr) / get_modulus(qtrgt) * qcurr
+        qtrgt = normalize(self.locator(vtrgt).view(-1, 4))
+        qtangent = qtrgt - th.sum(qtrgt * qcurr, dim=1, keepdim=True) / length(qcurr) / length(qtrgt) * qcurr
         logger.info(f'qvelocity: {th.sum(qtangent * qcurr, dim=1, keepdim=True).max().item()}')
         return qtangent
 
     def qdelta(self, qcurr, vtrgt):
         qd = self.estimator(th.cat((self.qview(qcurr), vtrgt), dim=1)).view(-1, 4)
-        qtrgt = q_normalize(qcurr + qd)
-        qtangent = qtrgt - th.sum(qtrgt * qcurr, dim=1, keepdim=True) / get_modulus(qcurr) / get_modulus(qtrgt) * qcurr
+        qtrgt = normalize(qcurr + qd)
+        qtangent = qtrgt - th.sum(qtrgt * qcurr, dim=1, keepdim=True) / length(qcurr) / length(qtrgt) * qcurr
         logger.info(f'qdelta: {th.sum(qtangent * qcurr, dim=1, keepdim=True).max().item()}')
         return qtangent
 
@@ -273,10 +275,10 @@ class Model(nn.Module):
     def forward(self, x):
         qt = self.flow.target(x)
         q0 = self.flow.qinit(x)
-        logger.info(f'modulus_0: {get_modulus(q0).item()}')
+        logger.info(f'length_0: {length(q0).max().item()}')
         qs = odeint(self.flow, q0, th.arange(0.0, 3.01, 0.3), method='bosh3', rtol=0.1, atol=0.1)
 
         for i in range(qs.size()[0]):
-            logger.info(f'modulus_{i + 1}: {get_modulus(qs[i]).item()}')
+            logger.info(f'length_{i + 1}: {length(qs[i]).max().item()}')
 
         return self.skyview(qt), self.skyview(qs[-1]), qs[-1]
