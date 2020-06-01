@@ -150,7 +150,7 @@ class Flow(nn.Module):
     def qvelocity(self, qcurr, vtrgt):
         qtrgt = q_normalize(self.locator(vtrgt).view(-1, 4))
         qtangent = q_normalize(qtrgt - th.sum(qtrgt * qcurr, dim=1, keepdim=True) * qcurr)
-        return qtangent * (th.exp(get_modulus(qtrgt - qcurr)) - 1)
+        return qtangent * get_modulus(qtrgt - qcurr)
 
     def forward(self, t, q):
         return self.qvelocity(q, self.vtarget)
