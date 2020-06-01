@@ -166,7 +166,7 @@ class Model(nn.Module):
     def forward(self, x):
         self.flow.qtarget(x)
         q0 = self.flow.qinit(x)
-        qs = odeint(self.flow, q0, th.arange(0.0, 3.0, 0.3), method='dopri5', atol=1e-2)
+        qs = odeint(self.flow, q0, th.arange(0.0, 3.0, 0.3), method='rk4')
 
         vn3 = self.flow.qview(q_normalize(qs[-3]))
         vn2 = self.flow.qview(q_normalize(qs[-2]))
