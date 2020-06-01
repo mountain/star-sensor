@@ -66,23 +66,23 @@ def train_model():
                 stars = stars.cuda()
                 q = q.cuda()
 
-            result, target, qns = mdl(stars)
-            sloss = mmse(result, stars)
+            target, result, qns = mdl(stars)
             tloss = mmse(target, stars)
+            sloss = mmse(result, stars)
             qloss = mse(qns, q)
             loss = sloss + tloss + qloss
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            logger.info(f'Epoch: {epoch:03d} | Step: {step:03d} | Loss: {loss.item()} | SLoss: {sloss.item()} | TLoss: {tloss.item()} | QLoss: {qloss.item()}')
+            logger.info(f'Epoch: {epoch:03d} | Step: {step:03d} | Loss: {loss.item()} | TLoss: {tloss.item()} | SLoss: {sloss.item()} | QLoss: {qloss.item()}')
 
             loss_per_100 += loss.item()
             loss_per_epoch += loss.item()
 
             if step % 10 == 0:
                 plot(open('o.png', mode='wb'), stars[0, 0].detach().cpu().numpy().reshape(512, 512))
-                plot(open('t.png', mode='wb'), target[0].detach().cpu().numpy().reshape(512, 512))
-                plot(open('r.png', mode='wb'), result[0].detach().cpu().numpy().reshape(512, 512))
+                plot(open('t.png', mode='wb'), target[0, 0].detach().cpu().numpy().reshape(512, 512))
+                plot(open('r.png', mode='wb'), result[0, 0].detach().cpu().numpy().reshape(512, 512))
 
                 logger.info(f'Epoch: {epoch:03d} | Step: {step:03d} | Loss10: {loss_per_100 / 10.0}')
                 loss_per_100 = 0.0
