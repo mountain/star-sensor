@@ -129,9 +129,9 @@ class Flow(nn.Module):
 
     def qinit(self, y):
         batch = y.size()[0]
-        theta = th.random(batch, 1) * 2 * np.pi
-        phi = (th.random(batch, 1) - 0.5) * np.pi
-        alpha = th.random(batch, 1) * 2 * np.pi
+        theta = th.random.rand(batch, 1) * 2 * np.pi
+        phi = (th.random.rand(batch, 1) - 0.5) * np.pi
+        alpha = th.random.rand(batch, 1) * 2 * np.pi
         a = th.cos(alpha / 2)
         b = th.sin(alpha / 2) * th.sin(phi) * th.cos(theta)
         c = th.sin(alpha / 2) * th.sin(phi) * th.sin(theta)
