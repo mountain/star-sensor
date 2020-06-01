@@ -166,6 +166,6 @@ class Model(nn.Module):
     def forward(self, x):
         qt = self.flow.target(x)
         q0 = self.flow.qinit(x)
-        qs = odeint(self.flow, q0, th.arange(0.0, 3.01, 0.3), method='explicit_adams', rtol=0.1, atol=0.1)
+        qs = odeint(self.flow, q0, th.arange(0.0, 3.01, 0.3), method='tsit5', rtol=0.1, atol=0.1)
 
         return self.skyview(qt), self.skyview(qs[-1]), qs[-1]
