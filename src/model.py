@@ -262,7 +262,7 @@ class Flow(nn.Module):
         return qtangent
 
     def forward(self, t, q):
-        return (self.qvelocity(q, self.vtarget) + self.qdelta(q, self.vtarget)) / 2
+        return (1 - th.sigmoid(t - 3)) * self.qvelocity(q, self.vtarget) + th.sigmoid(t - 3) * self.qdelta(q, self.vtarget)
 
 
 class Model(nn.Module):
