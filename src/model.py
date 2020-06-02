@@ -144,8 +144,8 @@ class Locator(Base):
 
     def __init__(self):
         super(Locator, self).__init__()
-        block = BasicBlock
-        norm_layer = nn.InstanceNorm2d
+        block = SimpleBlock
+        norm_layer = Indentity
         self._norm_layer = norm_layer
         layers = [0, 0, 0, 0]
         num_classes = 4
@@ -175,8 +175,8 @@ class Estimator(Base):
 
     def __init__(self):
         super(Estimator, self).__init__()
-        block = BasicBlock
-        norm_layer = nn.InstanceNorm2d
+        block = SimpleBlock
+        norm_layer = Indentity
         self._norm_layer = norm_layer
         layers = [0, 0, 0, 0]
         num_classes = 4
