@@ -18,6 +18,10 @@ I = cast(np.array([[0, 1, 0, 0]], dtype=np.float32))
 J = cast(np.array([[0, 0, 1, 0]], dtype=np.float32))
 K = cast(np.array([[0, 0, 0, 1]], dtype=np.float32))
 
+I.requires_grad = False
+J.requires_grad = False
+K.requires_grad = False
+
 
 def norm(q):
     return th.sqrt(th.sum(q * q, dim=1, keepdim=True))
