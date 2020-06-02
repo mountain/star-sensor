@@ -60,14 +60,8 @@ class SimpleBlock(nn.Module):
 
 class Base(nn.Module):
 
-    def __init__(self, zero_init_residual=False, groups=1, width_per_group=64, replace_stride_with_dilation=None):
+    def __init__(self):
         super(Base, self).__init__()
-        block = SimpleBlock
-        norm_layer = Indentity
-        layers = [0, 0, 0, 0]
-        num_classes = 4
-        inchannel = 1
-        self.initialize(inchannel, num_classes, layers, norm_layer, block)
 
     def initialize(self, inchannel, num_classes, layers, norm_layer, block, zero_init_residual=False, groups=1, width_per_group=64, replace_stride_with_dilation=None):
         self.inplanes = 64
