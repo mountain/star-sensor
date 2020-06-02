@@ -5,7 +5,6 @@ import torch as th
 import torch.nn as nn
 import logging
 
-from torchvision.models.resnet import Bottleneck, BasicBlock, conv1x1, conv3x3
 from qnn.quaternion_ops import hamilton_product
 from unet.base import Swish
 from util.sky import Skyview
@@ -117,6 +116,6 @@ class Model(nn.Module):
     def forward(self, x):
         q0 = self.qinit(x)
         qt = self.flow.target(x)
-        qs = odeint(self.flow, q0, th.arange(0.0, 3.01, 0.1), method='bosh3', rtol=0.2, atol=0.2)
+        qs = odeint(self.flow, q0, th.arange(0.0, 3.01, 1.0), method='bosh3', rtol=0.2, atol=0.2, max_num_steps=60)
 
         return self.skyview(normalize(qt)), self.skyview(normalize(qs[-1])), normalize(qt), normalize(qs[-1])
