@@ -67,32 +67,25 @@ class Net(nn.Module):
 
 class Flow(nn.Module):
 
-    def __init__(self, skyview, locator, estimator):
+    def __init__(self, skyview, estimator):
         super().__init__()
         self.skyview = skyview
-        self.locator = locator
         self.estimator = estimator
 
-    def target(self, y):
-        self.vtarget = y
-        return normalize(self.locator(y).view(-1, 4))
+    def target(self, v):
+        self.vtarget = v
 
     def qview(self, q):
         view = self.skyview(q.view(-1, 4)).view(-1, 1, 512, 512)
         return view
 
     def tangent(self, qcurr, qtrgt):
-        return normalize(qtrgt - th.sum(qtrgt * qcurr, dim=1, keepdim=True) / length(qcurr) / length(qtrgt) * qcurr)
-
-    def qvelocity(self, qcurr, vtrgt):
-        return self.tangent(qcurr, normalize(self.locator(vtrgt).view(-1, 4)))
-
-    def qdelta(self, qcurr, vtrgt):
-        qd = hamilton_product(self.estimator(th.cat((self.qview(qcurr), vtrgt), dim=1)).view(-1, 4), qcurr)
-        return self.tangent(qcurr, normalize(qcurr + qd))
+        return qtrgt - th.sum(qtrgt * qcurr, dim=1, keepdim=True) / length(qcurr) / length(qtrgt) * qcurr
 
     def forward(self, t, q):
-        return (self.qvelocity(q, self.vtarget) + self.qdelta(q, self.vtarget)) / 2
+        estim = self.estimator(th.cat((self.qview(q), self.vtarget), dim=1)).view(-1, 2, 4)
+        delta = hamilton_product(hamilton_product(normalize(estim[:, 0]), estim[:, 1]), q)
+        return self.tangent(q, normalize(q + delta))
 
 
 class Model(nn.Module):
@@ -100,9 +93,8 @@ class Model(nn.Module):
     def __init__(self):
         super().__init__()
         self.skyview = Skyview()
-        self.locator = Net(1, 4)
-        self.estimator = Net(2, 4)
-        self.flow = Flow(self.skyview, self.locator, self.estimator)
+        self.estimator = Net(2, 8)
+        self.flow = Flow(self.skyview, self.estimator)
 
     def qinit(self, y):
         batch = y.size()[0]
@@ -121,8 +113,7 @@ class Model(nn.Module):
         return r
 
     def forward(self, x):
-        q0 = self.qinit(x)
-        qt = self.flow.target(x)
-        qs = odeint(self.flow, q0, th.arange(0.0, 3.01, 1.0), method='bosh3', rtol=0.2, atol=0.2, options={'max_num_steps': 15})
+        self.flow.target(x)
+        qs = odeint(self.flow, self.qinit(x), th.arange(0.0, 3.01, 1.0), method='bosh3', rtol=0.2, atol=0.2, options={'max_num_steps': 15})
 
-        return self.skyview(normalize(qt)), self.skyview(normalize(qs[-1])), normalize(qt), normalize(qs[-1])
+        return self.skyview(normalize(qs[-1])), normalize(qs[-1])
