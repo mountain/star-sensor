@@ -58,6 +58,7 @@ class Net(nn.Module):
         y = self.fc(y)
         return y
 
+
 class Flow(nn.Module):
 
     def __init__(self, skyview, locator, estimator):
