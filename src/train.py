@@ -66,15 +66,17 @@ def train_model():
                 stars = stars.cuda()
                 q = q.cuda()
 
-            target, result, qns = mdl(stars)
+            target, result, qe, qn = mdl(stars)
             tloss = mmse(target, stars)
             rloss = mmse(result, stars)
-            qloss = mse(qns, q)
-            loss = rloss + tloss + qloss
+            eloss = mse(qe, q)
+            qloss = mse(qn, q)
+            loss = rloss + tloss + qloss + eloss
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            logger.info(f'Epoch: {epoch:03d} | Step: {step:03d} | Loss: {loss.item()} | TLoss: {tloss.item()} | RLoss: {rloss.item()} | QLoss: {qloss.item()}')
+            logger.info(f'Epoch: {epoch:03d} | Step: {step:03d} | Loss: {loss.item()} | ELoss: {eloss.item()} | QLoss: {qloss.item()}')
+            logger.info(f'Epoch: {epoch:03d} | Step: {step:03d} | Loss: {loss.item()} | TLoss: {tloss.item()} | RLoss: {rloss.item()}')
 
             loss_per_100 += loss.item()
             loss_per_epoch += loss.item()

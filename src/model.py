@@ -281,4 +281,4 @@ class Model(nn.Module):
         #for i in range(qs.size()[0]):
         #    logger.info(f'length_{i + 1}: {length(qs[i]).max().item()}')
 
-        return self.skyview(normalize(qt)), self.skyview(normalize(qs[-1])), normalize(qs[-1])
+        return self.skyview(normalize(qt)), self.skyview(normalize(qs[-1])), normalize(qt), normalize(qs[-1])
