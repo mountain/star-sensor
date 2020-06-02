@@ -23,15 +23,19 @@ J.requires_grad = False
 K.requires_grad = False
 
 
+def normsq(q):
+    return th.sum(q * q, dim=1, keepdim=True)
+
+
 def norm(q):
-    return th.sqrt(th.sum(q * q, dim=1, keepdim=True))
+    return th.sqrt(normsq(q))
 
 
 def normalize(q):
-    return q / norm(q)
+    return q / (norm(q) + epsilon)
 
 
-def hamilton_product(x, y):
+def bhm(x, y):
     a1, b1, c1, d1 = x[:, 0:1], x[:, 1:2], x[:, 2:3], x[:, 3:4]
     a2, b2, c2, d2 = y[:, 0:1], y[:, 1:2], y[:, 2:3], y[:, 3:4]
 
@@ -44,15 +48,12 @@ def hamilton_product(x, y):
 
 
 def conjugate(q):
-    return - (
-        q + hamilton_product(I, hamilton_product(q, I)) + \
-        hamilton_product(J, hamilton_product(q, J)) + \
-        hamilton_product(K, hamilton_product(q, K))
-    ) / 2.0
+    a, b, c, d = q[:, 0:1], q[:, 1:2], q[:, 2:3], q[:, 3:4]
+    return th.cat((a, -b, -c, -d), dim=1) / (normsq(q) + epsilon)
 
 
 def reciprocal(q):
-    return conjugate(q) / (th.sum(q * q, dim=1, keepdim=True) + epsilon)
+    return conjugate(q) / (normsq(q) + epsilon)
 
 
 class Net(nn.Module):
@@ -118,7 +119,7 @@ class Flow(nn.Module):
 
     def forward(self, t, q):
         p = normalize(self.estimator(th.cat((self.qview(q), self.vtarget), dim=1)))
-        g = normalize(hamilton_product(hamilton_product(p, q), reciprocal(p)))
+        g = normalize(bhm(bhm(p, q), reciprocal(p)))
         return self.tangent(q, g)
 
 
