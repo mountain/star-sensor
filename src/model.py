@@ -84,9 +84,9 @@ class Base(nn.Module):
         #self.relu = nn.ReLU(inplace=True)
         self.relu = Swish()
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        self.layer1 = self._make_layer(block, 512, layers[0])
+        self.layer1 = self._make_layer(block, 1024, layers[0])
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = nn.Linear(512 * block.expansion, num_classes)
+        self.fc = nn.Linear(1024 * block.expansion, num_classes)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
