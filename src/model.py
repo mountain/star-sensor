@@ -24,7 +24,7 @@ def normalize(q):
 
 
 class Indentity(nn.Module):
-    def __init__(self):
+    def __init__(self, inplane):
         super(Indentity, self).__init__()
 
     def forward(self, x):
