@@ -32,7 +32,7 @@ class Indentity(nn.Module):
 
 
 class SimpleBlock(nn.Module):
-    expansion = 2
+    expansion = 1
 
     def __init__(self, inplanes, planes, stride=1, downsample=None, groups=1,
                  base_width=64, dilation=1, norm_layer=None):
@@ -84,7 +84,7 @@ class Base(nn.Module):
         #self.relu = nn.ReLU(inplace=True)
         self.relu = Swish()
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        self.layer1 = self._make_layer(block, 512, layers[0])
+        self.layer1 = self._make_layer(block, 1024, layers[0])
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(1024 * block.expansion, num_classes)
 
