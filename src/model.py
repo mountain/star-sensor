@@ -55,7 +55,9 @@ class SimpleBlock(nn.Module):
         out = self.conv1(x)
         out = self.bn1(out)
         out = self.relu(out)
-        return self.downsample(out)
+        if self.downsample != None:
+            out = self.downsample(out)
+        return out
 
 
 class Base(nn.Module):
@@ -111,14 +113,16 @@ class Base(nn.Module):
 
     def _make_layer(self, block, planes, blocks, stride=1, dilate=False):
         norm_layer = self._norm_layer
+        downsample = None
         previous_dilation = self.dilation
         if dilate:
             self.dilation *= stride
             stride = 1
-        downsample = nn.Sequential(
-            conv3x3(self.inplanes, planes * block.expansion, stride),
-            norm_layer(planes * block.expansion),
-        )
+        if stride != 1 or self.inplanes != planes * block.expansion:
+            downsample = nn.Sequential(
+                conv3x3(self.inplanes, planes * block.expansion, stride),
+                norm_layer(planes * block.expansion),
+            )
 
         layers = []
         layers.append(block(self.inplanes, planes, stride, downsample, self.groups,
