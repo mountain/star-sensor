@@ -66,7 +66,7 @@ class Base(nn.Module):
         super(Base, self).__init__()
 
     def initialize(self, inchannel, num_classes, layers, norm_layer, block, zero_init_residual=False, groups=1, width_per_group=64, replace_stride_with_dilation=None):
-        self.inplanes = 64
+        self.inplanes = 1024
         self._norm_layer = norm_layer
         self.dilation = 1
         if replace_stride_with_dilation is None:
