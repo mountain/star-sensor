@@ -56,7 +56,7 @@ class Net(nn.Module):
         y = self.avgpool(y)
         y = th.flatten(y, 1)
         y = self.fc(y)
-
+        return y
 
 class Flow(nn.Module):
 
