@@ -27,14 +27,16 @@ class Net(nn.Module):
     def __init__(self, inchannel, num_classes):
         super(Net, self).__init__()
         self.relu = Swish()
-        self.conv1 = nn.Conv2d(inchannel, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        self.conv1 = nn.Conv2d(inchannel, 16, kernel_size=3, stride=2, padding=1, bias=False)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        self.conv2 = nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1)
-        self.conv3 = nn.Conv2d(128, 256, kernel_size=3, stride=2, padding=1)
-        self.conv4 = nn.Conv2d(256, 512, kernel_size=3, stride=2, padding=1)
-        self.conv5 = nn.Conv2d(512, 1024, kernel_size=3, stride=2, padding=1)
-        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = nn.Linear(1024, num_classes)
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, stride=2, padding=1)
+        self.conv3 = nn.Conv2d(32, 64, kernel_size=3, stride=2, padding=1)
+        self.conv4 = nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1)
+        self.conv5 = nn.Conv2d(128, 256, kernel_size=3, stride=2, padding=1)
+        self.conv6 = nn.Conv2d(256, 512, kernel_size=3, stride=2, padding=1)
+        self.conv7 = nn.Conv2d(512, 1024, kernel_size=3, stride=2, padding=1)
+        self.conv8 = nn.Conv2d(1024, 2048, kernel_size=3, stride=2, padding=1)
+        self.fc = nn.Linear(2048, num_classes)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -52,7 +54,6 @@ class Net(nn.Module):
         y = self.relu(y)
         y = self.conv5(y)
         y = self.relu(y)
-        y = self.avgpool(y)
         y = th.flatten(y, 1)
         y = self.fc(y)
         return y
