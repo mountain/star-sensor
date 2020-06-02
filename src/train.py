@@ -36,10 +36,8 @@ fileHandler = logging.FileHandler(log_file)
 fileHandler.setFormatter(logFormatter)
 logger.addHandler(fileHandler)
 
-dataset_train = StarDataset(1000)
-dataset_test = StarDataset(100)
-dataloader_train = DataLoader(dataset_train, batch_size=3, shuffle=False, num_workers=0)
-dataloader_test = DataLoader(dataset_test, batch_size=1, shuffle=False, num_workers=0)
+dataset_train = StarDataset(500)
+dataloader_train = DataLoader(dataset_train, batch_size=5, shuffle=False, num_workers=0)
 
 
 def train_model():
@@ -58,7 +56,7 @@ def train_model():
         mdl.train()
         dataloader = dataloader_train
         loss_per_epoch = 0.0
-        loss_per_100 = 0.0
+        loss_per_10 = 0.0
         for step, sample in enumerate(dataloader):
             q = th.FloatTensor(sample['q']).view(-1, 4)
             stars = th.FloatTensor(sample['stars']).view(-1, 1, 512, 512)
@@ -75,15 +73,15 @@ def train_model():
             optimizer.step()
             logger.info(f'Epoch: {epoch:03d} | Step: {step:03d} | Loss: {loss.item()} | QLoss: {qloss.item()} | RLoss: {rloss.item()}')
 
-            loss_per_100 += loss.item()
+            loss_per_10 += loss.item()
             loss_per_epoch += loss.item()
 
-            if step % 10 == 0:
+            if step % 10 == 0 and step > 0:
                 plot(open('o.png', mode='wb'), stars[0, 0].detach().cpu().numpy().reshape(512, 512))
                 plot(open('r.png', mode='wb'), result[0, 0].detach().cpu().numpy().reshape(512, 512))
 
-                logger.info(f'Epoch: {epoch:03d} | Step: {step:03d} | Loss10: {loss_per_100 / 10.0}')
-                loss_per_100 = 0.0
+                logger.info(f'Epoch: {epoch:03d} | Step: {step:03d} | Loss10: {loss_per_10 / 10.0}')
+                loss_per_10 = 0.0
 
         logger.info(f'Epoch: {epoch:03d} | Train Loss: {loss_per_epoch / dataloader.dataset.size}')
 
