@@ -32,7 +32,7 @@ class Indentity(nn.Module):
 
 
 class SimpleBlock(nn.Module):
-    expansion = 1
+    expansion = 2
 
     def __init__(self, inplanes, planes, stride=1, downsample=None, groups=1,
                  base_width=64, dilation=1, norm_layer=None):
@@ -128,10 +128,6 @@ class Base(nn.Module):
         layers.append(block(self.inplanes, planes, stride, downsample, self.groups,
                             self.base_width, previous_dilation, norm_layer))
         self.inplanes = planes * block.expansion
-        for _ in range(1, blocks):
-            layers.append(block(self.inplanes, planes, groups=self.groups,
-                                base_width=self.base_width, dilation=self.dilation,
-                                norm_layer=norm_layer))
 
         return nn.Sequential(*layers)
 
