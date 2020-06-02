@@ -5,7 +5,7 @@ import torch as th
 import torch.nn as nn
 import logging
 
-from torchvision.models.resnet import Bottleneck, BasicBlock, conv1x1
+from torchvision.models.resnet import Bottleneck, BasicBlock, conv1x1, conv3x3
 from qnn.quaternion_ops import hamilton_product
 from util.sky import Skyview
 from torchdiffeq import odeint_adjoint as odeint
@@ -29,7 +29,7 @@ class Locator(nn.Module):
         block = BasicBlock
         norm_layer = nn.InstanceNorm2d
         self._norm_layer = norm_layer
-        layers = [2, 2, 2, 2]
+        layers = [0, 0, 0, 0]
         num_classes = 4
         inchannel = 1
 
@@ -85,7 +85,7 @@ class Locator(nn.Module):
             stride = 1
         if stride != 1 or self.inplanes != planes * block.expansion:
             downsample = nn.Sequential(
-                conv1x1(self.inplanes, planes * block.expansion, stride),
+                conv3x3(self.inplanes, planes * block.expansion, stride),
                 norm_layer(planes * block.expansion),
             )
 
@@ -126,7 +126,7 @@ class Estimator(nn.Module):
         block = BasicBlock
         norm_layer = nn.InstanceNorm2d
         self._norm_layer = norm_layer
-        layers = [2, 2, 2, 2]
+        layers = [0, 0, 0, 0]
         num_classes = 4
         inchannel = 2
 
@@ -228,22 +228,6 @@ class Flow(nn.Module):
         self.vtarget = y
         return normalize(self.locator(y).view(-1, 4))
 
-    def qinit(self, y):
-        batch = y.size()[0]
-        theta = th.rand(batch, 1) * 2 * np.pi
-        phi = (th.rand(batch, 1) - 0.5) * np.pi
-        alpha = th.rand(batch, 1) * 2 * np.pi
-        a = th.cos(alpha / 2)
-        b = th.sin(alpha / 2) * th.cos(phi) * th.cos(theta)
-        c = th.sin(alpha / 2) * th.cos(phi) * th.sin(theta)
-        d = th.sin(alpha / 2) * th.sin(phi)
-
-        r = th.cat((a, b, c, d), dim=1)
-        if th.cuda.is_available():
-            r = r.cuda()
-
-        return r
-
     def qview(self, q):
         view = self.skyview(q.view(-1, 4)).view(-1, 1, 512, 512)
         return view
@@ -272,8 +256,24 @@ class Model(nn.Module):
         self.estimator = Estimator()
         self.flow = Flow(self.skyview, self.locator, self.estimator)
 
+    def qinit(self, y):
+        batch = y.size()[0]
+        theta = th.rand(batch, 1) * 2 * np.pi
+        phi = (th.rand(batch, 1) - 0.5) * np.pi
+        alpha = th.rand(batch, 1) * 2 * np.pi
+        a = th.cos(alpha / 2)
+        b = th.sin(alpha / 2) * th.cos(phi) * th.cos(theta)
+        c = th.sin(alpha / 2) * th.cos(phi) * th.sin(theta)
+        d = th.sin(alpha / 2) * th.sin(phi)
+
+        r = th.cat((a, b, c, d), dim=1)
+        if th.cuda.is_available():
+            r = r.cuda()
+
+        return r
+
     def forward(self, x):
-        q0 = self.flow.qinit(x)
+        q0 = self.qinit(x)
         qt = self.flow.target(x)
         qs = odeint(self.flow, q0, th.arange(0.0, 3.01, 0.1), method='bosh3', rtol=0.2, atol=0.2)
 
