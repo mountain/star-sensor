@@ -67,8 +67,8 @@ def train_model():
                 q = q.cuda()
 
             target, result, qe, qn = mdl(stars)
-            tloss = 10 * mmse(target, stars)
-            rloss = 10 * mmse(result, stars)
+            tloss = mmse(target, stars)
+            rloss = mmse(result, stars)
             eloss = mse(qe, q)
             qloss = mse(qn, q)
             loss = rloss + tloss + qloss + eloss
