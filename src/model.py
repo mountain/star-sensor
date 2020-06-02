@@ -54,6 +54,12 @@ class Net(nn.Module):
         y = self.relu(y)
         y = self.conv5(y)
         y = self.relu(y)
+        y = self.conv6(y)
+        y = self.relu(y)
+        y = self.conv7(y)
+        y = self.relu(y)
+        y = self.conv8(y)
+        y = self.relu(y)
         y = th.flatten(y, 1)
         y = self.fc(y)
         return y
