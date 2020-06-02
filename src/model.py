@@ -141,12 +141,9 @@ class Locator(Base):
     def forward(self, x):
         # See note [TorchScript super()]
         y = self.conv1(x)
-        y = self.bn1(y)
         y = self.relu(y)
         y = self.maxpool(y)
-
         y = self.layer1(y)
-
         y = self.avgpool(y)
         y = th.flatten(y, 1)
         y = self.fc(y)
@@ -169,12 +166,9 @@ class Estimator(Base):
     def forward(self, x):
         # See note [TorchScript super()]
         y = self.conv1(x)
-        y = self.bn1(y)
         y = self.relu(y)
         y = self.maxpool(y)
-
         y = self.layer1(y)
-
         y = self.avgpool(y)
         y = th.flatten(y, 1)
         y = self.fc(y)
