@@ -55,7 +55,7 @@ class Base(nn.Module):
     def __init__(self, zero_init_residual=False, groups=1, width_per_group=64, replace_stride_with_dilation=None):
         super(Base, self).__init__()
         block = SimpleBlock
-        norm_layer = nn.InstanceNorm2d
+        norm_layer = nn.LayerNorm
         layers = [0, 0, 0, 0]
         num_classes = 4
         inchannel = 1
@@ -80,15 +80,15 @@ class Base(nn.Module):
         #self.relu = nn.ReLU(inplace=True)
         self.relu = Swish()
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        self.layer1 = self._make_layer(block, 96, layers[0])
-        self.layer2 = self._make_layer(block, 192, layers[1], stride=2,
+        self.layer1 = self._make_layer(block, 84, layers[0])
+        self.layer2 = self._make_layer(block, 128, layers[1], stride=2,
                                        dilate=replace_stride_with_dilation[0])
-        self.layer3 = self._make_layer(block, 384, layers[2], stride=2,
+        self.layer3 = self._make_layer(block, 256, layers[2], stride=2,
                                        dilate=replace_stride_with_dilation[1])
-        self.layer4 = self._make_layer(block, 768, layers[3], stride=2,
+        self.layer4 = self._make_layer(block, 512, layers[3], stride=2,
                                        dilate=replace_stride_with_dilation[2])
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = nn.Linear(768 * block.expansion, num_classes)
+        self.fc = nn.Linear(512 * block.expansion, num_classes)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
