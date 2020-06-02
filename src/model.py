@@ -143,7 +143,7 @@ class Locator(Base):
         block = SimpleBlock
         norm_layer = Indentity
         self._norm_layer = norm_layer
-        layers = [0, 0, 0, 0]
+        layers = [1, 1, 1, 1]
         num_classes = 4
         inchannel = 1
         self.initialize(inchannel, num_classes, layers, norm_layer, block)
@@ -174,7 +174,7 @@ class Estimator(Base):
         block = SimpleBlock
         norm_layer = Indentity
         self._norm_layer = norm_layer
-        layers = [0, 0, 0, 0]
+        layers = [1, 1, 1, 1]
         num_classes = 4
         inchannel = 2
         self.initialize(inchannel, num_classes, layers, norm_layer, block)
