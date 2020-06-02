@@ -276,7 +276,7 @@ class Model(nn.Module):
         qt = self.flow.target(x)
         q0 = self.flow.qinit(x)
         #logger.info(f'length_0: {length(q0).max().item()}')
-        qs = odeint(self.flow, q0, th.arange(0.0, 6.01, 2.0), method='bosh3', rtol=0.1, atol=0.1)
+        qs = odeint(self.flow, q0, th.arange(0.0, 6.01, 1.0), method='bosh3', rtol=0.1, atol=0.1)
 
         #for i in range(qs.size()[0]):
         #    logger.info(f'length_{i + 1}: {length(qs[i]).max().item()}')
