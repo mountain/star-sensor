@@ -66,7 +66,7 @@ class Base(nn.Module):
         super(Base, self).__init__()
 
     def initialize(self, inchannel, num_classes, layers, norm_layer, block, zero_init_residual=False, groups=1, width_per_group=64, replace_stride_with_dilation=None):
-        self.inplanes = 1024
+        self.inplanes = 512
         self._norm_layer = norm_layer
         self.dilation = 1
         if replace_stride_with_dilation is None:
@@ -84,9 +84,9 @@ class Base(nn.Module):
         #self.relu = nn.ReLU(inplace=True)
         self.relu = Swish()
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        self.layer1 = self._make_layer(block, 1024, layers[0])
+        self.layer1 = self._make_layer(block, 512, layers[0])
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = nn.Linear(1024 * block.expansion, num_classes)
+        self.fc = nn.Linear(512 * block.expansion, num_classes)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
