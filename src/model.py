@@ -25,10 +25,8 @@ def normalize(q):
 
 class Net(nn.Module):
 
-    def __init__(self):
+    def __init__(self, inchannel, num_classes):
         super(Net, self).__init__()
-
-    def initialize(self, inchannel, num_classes):
         self.relu = Swish()
         self.conv1 = nn.Conv2d(inchannel, 64, kernel_size=7, stride=2, padding=3, bias=False)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
