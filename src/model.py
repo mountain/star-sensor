@@ -57,11 +57,11 @@ def reciprocal(q):
 
 class Net(nn.Module):
 
-    def __init__(self, inchannel):
+    def __init__(self):
         super(Net, self).__init__()
 
         self.relu = Swish()
-        self.conv1 = nn.Conv2d(inchannel, 16, kernel_size=3, stride=2, padding=1, bias=False)
+        self.conv1 = nn.Conv2d(2, 16, kernel_size=3, stride=2, padding=1, bias=False)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
         self.conv2 = nn.Conv2d(16, 32, kernel_size=3, stride=2, padding=1)
         self.conv3 = nn.Conv2d(32, 64, kernel_size=3, stride=2, padding=1)
@@ -127,7 +127,7 @@ class Model(nn.Module):
     def __init__(self):
         super().__init__()
         self.skyview = Skyview()
-        self.estimator = Net(2, 4)
+        self.estimator = Net()
         self.flow = Flow(self.skyview, self.estimator)
 
     def qinit(self, y):
