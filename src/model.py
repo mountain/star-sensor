@@ -218,11 +218,11 @@ class Estimator(nn.Module):
 
 class Flow(nn.Module):
 
-    def __init__(self, skyview):
+    def __init__(self, skyview, locator, estimator):
         super().__init__()
         self.skyview = skyview
-        self.locator = Locator()
-        self.estimator = Estimator()
+        self.locator = locator
+        self.estimator = estimator
 
     def target(self, y):
         self.vtarget = y
@@ -248,21 +248,19 @@ class Flow(nn.Module):
         view = self.skyview(q.view(-1, 4)).view(-1, 1, 512, 512)
         return view
 
+    def tangent(self, qcurr, qtrgt):
+        t = normalize(qtrgt - th.sum(qtrgt * qcurr, dim=1, keepdim=True) / length(qcurr) / length(qtrgt) * qcurr)
+        return length(qtrgt - qcurr) * t
+
     def qvelocity(self, qcurr, vtrgt):
-        qtrgt = normalize(self.locator(vtrgt).view(-1, 4))
-        qtangent = qtrgt - th.sum(qtrgt * qcurr, dim=1, keepdim=True) / length(qcurr) / length(qtrgt) * qcurr
-        #logger.info(f'qvelocity: {th.sum(qtangent * qcurr, dim=1, keepdim=True).max().item()}')
-        return qtangent
+        return self.tangent(qcurr, normalize(self.locator(vtrgt).view(-1, 4)))
 
     def qdelta(self, qcurr, vtrgt):
         qd = hamilton_product(self.estimator(th.cat((self.qview(qcurr), vtrgt), dim=1)).view(-1, 4), qcurr)
-        qtrgt = normalize(qcurr + qd)
-        qtangent = qtrgt - th.sum(qtrgt * qcurr, dim=1, keepdim=True) / length(qcurr) / length(qtrgt) * qcurr
-        #logger.info(f'qdelta: {th.sum(qtangent * qcurr, dim=1, keepdim=True).max().item()}')
-        return qtangent
+        return self.tangent(qcurr, normalize(qcurr + qd))
 
     def forward(self, t, q):
-        return (1 - th.sigmoid(t)) * self.qvelocity(q, self.vtarget) + th.sigmoid(t) * self.qdelta(q, self.vtarget)
+        return (self.qvelocity(q, self.vtarget) + self.qdelta(q, self.vtarget)) / 2
 
 
 class Model(nn.Module):
@@ -270,15 +268,13 @@ class Model(nn.Module):
     def __init__(self):
         super().__init__()
         self.skyview = Skyview()
-        self.flow = Flow(self.skyview)
+        self.locator = Locator()
+        self.estimator = Estimator()
+        self.flow = Flow(self.skyview, self.locator, self.estimator)
 
     def forward(self, x):
-        qt = self.flow.target(x)
         q0 = self.flow.qinit(x)
-        #logger.info(f'length_0: {length(q0).max().item()}')
+        qt = self.flow.target(x)
         qs = odeint(self.flow, q0, th.arange(0.0, 3.01, 0.1), method='bosh3', rtol=0.2, atol=0.2)
-
-        #for i in range(qs.size()[0]):
-        #    logger.info(f'length_{i + 1}: {length(qs[i]).max().item()}')
 
         return self.skyview(normalize(qt)), self.skyview(normalize(qs[-1])), normalize(qt), normalize(qs[-1])
