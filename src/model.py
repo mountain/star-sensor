@@ -7,6 +7,7 @@ import logging
 
 from torchvision.models.resnet import Bottleneck, BasicBlock, conv1x1, conv3x3
 from qnn.quaternion_ops import hamilton_product
+from unet.base import Swish
 from util.sky import Skyview
 from torchdiffeq import odeint_adjoint as odeint
 
@@ -22,11 +23,38 @@ def normalize(q):
     return q / length(q)
 
 
+class SimpleBlock(nn.Module):
+    expansion = 1
+
+    def __init__(self, inplanes, planes, stride=1, downsample=None, groups=1,
+                 base_width=64, dilation=1, norm_layer=None):
+        super(SimpleBlock, self).__init__()
+        if norm_layer is None:
+            norm_layer = nn.BatchNorm2d
+        if groups != 1 or base_width != 64:
+            raise ValueError('BasicBlock only supports groups=1 and base_width=64')
+        if dilation > 1:
+            raise NotImplementedError("Dilation > 1 not supported in BasicBlock")
+        # Both self.conv1 and self.downsample layers downsample the input when stride != 1
+        self.conv1 = conv3x3(inplanes, planes, stride)
+        self.bn1 = norm_layer(planes)
+        #self.relu = nn.ReLU(inplace=True)
+        self.relu = Swish()
+        self.downsample = downsample
+        self.stride = stride
+
+    def forward(self, x):
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = self.relu(out)
+        return self.downsample(out)
+
+
 class Base(nn.Module):
 
     def __init__(self, zero_init_residual=False, groups=1, width_per_group=64, replace_stride_with_dilation=None):
         super(Base, self).__init__()
-        block = BasicBlock
+        block = SimpleBlock
         norm_layer = nn.InstanceNorm2d
         layers = [0, 0, 0, 0]
         num_classes = 4
@@ -49,7 +77,8 @@ class Base(nn.Module):
         self.conv1 = nn.Conv2d(inchannel, self.inplanes, kernel_size=7, stride=2, padding=3,
                                bias=False)
         self.bn1 = norm_layer(self.inplanes)
-        self.relu = nn.ReLU(inplace=True)
+        #self.relu = nn.ReLU(inplace=True)
+        self.relu = Swish()
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
         self.layer1 = self._make_layer(block, 96, layers[0])
         self.layer2 = self._make_layer(block, 192, layers[1], stride=2,
