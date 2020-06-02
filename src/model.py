@@ -23,146 +23,43 @@ def normalize(q):
     return q / length(q)
 
 
-class Indentity(nn.Module):
-    def __init__(self, inplane):
-        super(Indentity, self).__init__()
-
-    def forward(self, x):
-        return x
-
-
-class SimpleBlock(nn.Module):
-    expansion = 1
-
-    def __init__(self, inplanes, planes, stride=1, downsample=None, groups=1,
-                 base_width=64, dilation=1, norm_layer=None):
-        super(SimpleBlock, self).__init__()
-        if norm_layer is None:
-            norm_layer = Indentity
-        if groups != 1 or base_width != 64:
-            raise ValueError('BasicBlock only supports groups=1 and base_width=64')
-        if dilation > 1:
-            raise NotImplementedError("Dilation > 1 not supported in BasicBlock")
-        # Both self.conv1 and self.downsample layers downsample the input when stride != 1
-        self.conv1 = conv3x3(inplanes, planes, stride)
-        self.bn1 = norm_layer(planes)
-        #self.relu = nn.ReLU(inplace=True)
-        self.relu = Swish()
-        self.downsample = downsample
-        self.stride = stride
-
-    def forward(self, x):
-        out = self.conv1(x)
-        out = self.relu(out)
-        if self.downsample != None:
-            out = self.downsample(out)
-        return out
-
-
-class Base(nn.Module):
+class Net(nn.Module):
 
     def __init__(self):
-        super(Base, self).__init__()
+        super(Net, self).__init__()
 
-    def initialize(self, inchannel, num_classes, layers, norm_layer, block, zero_init_residual=False, groups=1, width_per_group=64, replace_stride_with_dilation=None):
-        self.inplanes = 64
-        self._norm_layer = norm_layer
-        self.dilation = 1
-        if replace_stride_with_dilation is None:
-            # each element in the tuple indicates if we should replace
-            # the 2x2 stride with a dilated convolution instead
-            replace_stride_with_dilation = [False, False, False]
-        if len(replace_stride_with_dilation) != 3:
-            raise ValueError("replace_stride_with_dilation should be None "
-                             "or a 3-element tuple, got {}".format(replace_stride_with_dilation))
-        self.groups = groups
-        self.base_width = width_per_group
-        self.conv1 = nn.Conv2d(inchannel, self.inplanes, kernel_size=7, stride=2, padding=3,
-                               bias=False)
-        self.bn1 = norm_layer(self.inplanes)
-        #self.relu = nn.ReLU(inplace=True)
+    def initialize(self, inchannel, num_classes):
         self.relu = Swish()
+        self.conv1 = nn.Conv2d(inchannel, 64, kernel_size=7, stride=2, padding=3, bias=False)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        self.layer1 = self._make_layer(block, 64, layers[0])
-        self.layer2 = self._make_layer(block, 512, layers[0])
+        self.conv2 = nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1)
+        self.conv3 = nn.Conv2d(128, 256, kernel_size=3, stride=2, padding=1)
+        self.conv4 = nn.Conv2d(256, 512, kernel_size=3, stride=2, padding=1)
+        self.conv5 = nn.Conv2d(512, 1024, kernel_size=3, stride=2, padding=1)
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = nn.Linear(512 * block.expansion, num_classes)
+        self.fc = nn.Linear(1024, num_classes)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
-
-    def _make_layer(self, block, planes, blocks, stride=1, dilate=False):
-        norm_layer = self._norm_layer
-        downsample = None
-        previous_dilation = self.dilation
-        if dilate:
-            self.dilation *= stride
-            stride = 1
-        if stride != 1 or self.inplanes != planes * block.expansion:
-            downsample = nn.Sequential(
-                conv3x3(self.inplanes, planes * block.expansion, stride),
-                norm_layer(planes * block.expansion),
-            )
-
-        layers = []
-        layers.append(block(self.inplanes, planes, stride, downsample, self.groups,
-                            self.base_width, previous_dilation, norm_layer))
-        self.inplanes = planes * block.expansion
-
-        return nn.Sequential(*layers)
-
-
-class Locator(Base):
-
-    def __init__(self):
-        super(Locator, self).__init__()
-        block = SimpleBlock
-        norm_layer = Indentity
-        self._norm_layer = norm_layer
-        layers = [0, 0, 0, 0]
-        num_classes = 4
-        inchannel = 1
-        self.initialize(inchannel, num_classes, layers, norm_layer, block)
+                nn.init.constant_(m.weight, val=0)
 
     def forward(self, x):
-        # See note [TorchScript super()]
         y = self.conv1(x)
         y = self.relu(y)
         y = self.maxpool(y)
         y = self.layer1(y)
-        y = self.layer2(y)
-        y = self.avgpool(y)
-        y = th.flatten(y, 1)
-        y = self.fc(y)
-
-        return normalize(y.view(-1, 4))
-
-
-class Estimator(Base):
-
-    def __init__(self):
-        super(Estimator, self).__init__()
-        block = SimpleBlock
-        norm_layer = Indentity
-        self._norm_layer = norm_layer
-        layers = [0, 0, 0, 0]
-        num_classes = 4
-        inchannel = 2
-        self.initialize(inchannel, num_classes, layers, norm_layer, block)
-
-    def forward(self, x):
-        # See note [TorchScript super()]
-        y = self.conv1(x)
         y = self.relu(y)
-        y = self.maxpool(y)
-        y = self.layer1(y)
         y = self.layer2(y)
+        y = self.relu(y)
+        y = self.layer3(y)
+        y = self.relu(y)
+        y = self.layer4(y)
+        y = self.relu(y)
+        y = self.layer5(y)
+        y = self.relu(y)
         y = self.avgpool(y)
         y = th.flatten(y, 1)
         y = self.fc(y)
-
-        return normalize(y.view(-1, 4))
 
 
 class Flow(nn.Module):
@@ -200,8 +97,8 @@ class Model(nn.Module):
     def __init__(self):
         super().__init__()
         self.skyview = Skyview()
-        self.locator = Locator()
-        self.estimator = Estimator()
+        self.locator = Net(1, 4)
+        self.estimator = Net(2, 4)
         self.flow = Flow(self.skyview, self.locator, self.estimator)
 
     def qinit(self, y):
