@@ -6,7 +6,7 @@ import torch.nn as nn
 import logging
 
 from torchvision.models.resnet import Bottleneck, BasicBlock, conv1x1
-from qnn.quaternion_ops import q_normalize, get_modulus
+from qnn.quaternion_ops import hamilton_product
 from util.sky import Skyview
 from torchdiffeq import odeint_adjoint as odeint
 
@@ -255,14 +255,14 @@ class Flow(nn.Module):
         return qtangent
 
     def qdelta(self, qcurr, vtrgt):
-        qd = self.estimator(th.cat((self.qview(qcurr), vtrgt), dim=1)).view(-1, 4)
+        qd = hamilton_product(self.estimator(th.cat((self.qview(qcurr), vtrgt), dim=1)).view(-1, 4), qcurr)
         qtrgt = normalize(qcurr + qd)
         qtangent = qtrgt - th.sum(qtrgt * qcurr, dim=1, keepdim=True) / length(qcurr) / length(qtrgt) * qcurr
         #logger.info(f'qdelta: {th.sum(qtangent * qcurr, dim=1, keepdim=True).max().item()}')
         return qtangent
 
     def forward(self, t, q):
-        return (1 - th.sigmoid(t - 3)) * self.qvelocity(q, self.vtarget) + th.sigmoid(t - 3) * self.qdelta(q, self.vtarget)
+        return (1 - self.sigmoid(t - 3)) * self.qvelocity(q, self.vtarget) + th.sigmoid(t - 3) * self.qdelta(q, self.vtarget)
 
 
 class Model(nn.Module):
