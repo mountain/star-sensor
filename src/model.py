@@ -262,7 +262,7 @@ class Flow(nn.Module):
         return qtangent
 
     def forward(self, t, q):
-        return (1 - th.sigmoid(t - 3)) * self.qvelocity(q, self.vtarget) + th.sigmoid(t - 3) * self.qdelta(q, self.vtarget)
+        return (1 - th.sigmoid(t)) * self.qvelocity(q, self.vtarget) + th.sigmoid(t) * self.qdelta(q, self.vtarget)
 
 
 class Model(nn.Module):
@@ -276,7 +276,7 @@ class Model(nn.Module):
         qt = self.flow.target(x)
         q0 = self.flow.qinit(x)
         #logger.info(f'length_0: {length(q0).max().item()}')
-        qs = odeint(self.flow, q0, th.arange(0.0, 6.01, 1.0), method='bosh3', rtol=0.2, atol=0.2)
+        qs = odeint(self.flow, q0, th.arange(0.0, 3.01, 0.1), method='bosh3', rtol=0.2, atol=0.2)
 
         #for i in range(qs.size()[0]):
         #    logger.info(f'length_{i + 1}: {length(qs[i]).max().item()}')
