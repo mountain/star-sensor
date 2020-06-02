@@ -149,6 +149,6 @@ class Model(nn.Module):
 
     def forward(self, x):
         self.flow.target(x)
-        qs = odeint(self.flow, self.qinit(x), th.arange(0.0, 1.01, 0.1), method='bosh3', rtol=0.1, atol=0.1, options={'max_num_steps': 20})
+        qs = odeint(self.flow, self.qinit(x), th.arange(0.0, 1.01, 0.1), method='bosh3', rtol=0.1, atol=0.1, options={'max_num_steps': 10})
 
         return self.skyview(normalize(qs[-1])), normalize(qs[-1])
