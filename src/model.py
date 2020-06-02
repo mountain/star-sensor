@@ -23,6 +23,14 @@ def normalize(q):
     return q / length(q)
 
 
+class Indentity(nn.Module):
+    def __init__(self):
+        super(Indentity, self).__init__()
+
+    def forward(self, x):
+        return x
+
+
 class SimpleBlock(nn.Module):
     expansion = 1
 
@@ -30,7 +38,7 @@ class SimpleBlock(nn.Module):
                  base_width=64, dilation=1, norm_layer=None):
         super(SimpleBlock, self).__init__()
         if norm_layer is None:
-            norm_layer = nn.BatchNorm2d
+            norm_layer = Indentity
         if groups != 1 or base_width != 64:
             raise ValueError('BasicBlock only supports groups=1 and base_width=64')
         if dilation > 1:
@@ -55,7 +63,7 @@ class Base(nn.Module):
     def __init__(self, zero_init_residual=False, groups=1, width_per_group=64, replace_stride_with_dilation=None):
         super(Base, self).__init__()
         block = SimpleBlock
-        norm_layer = nn.LayerNorm
+        norm_layer = Indentity
         layers = [0, 0, 0, 0]
         num_classes = 4
         inchannel = 1
