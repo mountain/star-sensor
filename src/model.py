@@ -75,7 +75,7 @@ class Net(nn.Module):
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                nn.init.constant_(m.weight, val=0)
+                nn.init.normal_(m.weight, mean=0, std=0.1)
 
     def forward(self, x):
         y = self.conv1(x)
