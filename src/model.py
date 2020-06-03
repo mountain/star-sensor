@@ -71,7 +71,7 @@ class Net(nn.Module):
         self.conv6 = nn.Conv2d(256, 512, kernel_size=3, stride=2, padding=1)
         self.conv7 = nn.Conv2d(512, 1024, kernel_size=3, stride=2, padding=1)
         self.conv8 = nn.Conv2d(1024, 2048, kernel_size=3, stride=2, padding=1)
-        self.fc = nn.Linear(2048, 4)
+        self.fc = nn.Linear(2048, 8)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -118,8 +118,9 @@ class Flow(nn.Module):
         return qtrgt - th.sum(qtrgt * qcurr, dim=1, keepdim=True) / norm(qcurr) / norm(qtrgt) * qcurr
 
     def forward(self, t, q):
-        p = normalize(self.estimator(th.cat((self.qview(q), self.vtarget), dim=1)))
-        g = normalize(bhm(bhm(p, q), reciprocal(p)))
+        es = self.estimator(th.cat((self.qview(q), self.vtarget), dim=1))
+        p, r = normalize(es[:, 0:4]), es[:, 4:8]
+        g = normalize(bhm(bhm(p, q + r), reciprocal(p)))
         return normalize(self.tangent(q, g)) * th.sigmoid(3 - 6 * t) * np.pi
 
 
