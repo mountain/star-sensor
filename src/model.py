@@ -120,7 +120,7 @@ class Flow(nn.Module):
     def forward(self, t, q):
         p = normalize(self.estimator(th.cat((self.qview(q), self.vtarget), dim=1)))
         g = normalize(bhm(bhm(p, q), reciprocal(p)))
-        return normalize(self.tangent(q, g)) * (th.exp(norm(q - g)) - 1)
+        return normalize(self.tangent(q, g)) * th.sigmoid(3 - 6 * t) * 2 * np.pi
 
 
 class Model(nn.Module):
@@ -149,6 +149,6 @@ class Model(nn.Module):
 
     def forward(self, x):
         self.flow.target(x)
-        qs = odeint(self.flow, self.qinit(x), th.arange(0.0, 1.01, 0.1), method='bosh3', rtol=0.1, atol=0.1, options={'max_num_steps': 10})
+        qs = odeint(self.flow, self.qinit(x), th.arange(0.0, 7.01, 1.0) / 7.0, method='bosh3', rtol=0.1, atol=0.1, options={'max_num_steps': 13})
 
         return self.skyview(normalize(qs[-1])), normalize(qs[-1])
