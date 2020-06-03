@@ -120,7 +120,7 @@ class Flow(nn.Module):
     def forward(self, t, q):
         p = normalize(self.estimator(th.cat((self.qview(q), self.vtarget), dim=1)))
         g = normalize(bhm(bhm(p, q), reciprocal(p)))
-        return normalize(self.tangent(q, g)) * th.sigmoid(3 - 6 * t) * 2 * np.pi
+        return normalize(self.tangent(q, g)) * th.sigmoid(3 - 6 * t) * np.pi
 
 
 class Model(nn.Module):
