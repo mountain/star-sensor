@@ -123,7 +123,7 @@ class Flow(nn.Module):
         p, r, s = normalize(es[:, 0:4]), es[:, 4:8], es[:, 8:12]
         g = normalize(bhm(bhm(p, q + r), reciprocal(p)) + s)
         n = normalize(self.tangent(q, g)) * th.sigmoid(3 - 6 * t) * np.pi
-        logger.info(f't: {t[0].item():0.4f} | {n[0, 0].item():0.6f} | {n[0, 1].item():0.6f} | {n[0, 2].item():0.6f} | {n[0, 3].item():0.6f}')
+        logger.info(f't: {t.item():0.4f} | {n[0, 0].item():0.6f} | {n[0, 1].item():0.6f} | {n[0, 2].item():0.6f} | {n[0, 3].item():0.6f}')
         return n
 
 
