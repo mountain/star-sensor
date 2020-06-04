@@ -126,7 +126,7 @@ class Flow(nn.Module):
         es = self.estimator(th.cat((self.qview(q), self.vtarget), dim=1))
         p, r, s = normalize(es[:, 0:4]), es[:, 4:8], es[:, 8:12]
         g = normalize(bhm(bhm(p, q + r), reciprocal(p)) + s)
-        n = normalize(self.tangent(q, g)) * th.sigmoid(3 - 6 * t) * np.pi
+        n = self.tangent(q, g)
         logger.info('------------------------------------------------------------------------------------------------------------------')
         logger.info(f't: {t.item():0.4f} | {q[0, 0].item():0.6f} | {q[0, 1].item():0.6f} | {q[0, 2].item():0.6f} | {q[0, 3].item():0.6f}')
         logger.info(f't: {t.item():0.4f} | {n[0, 0].item():0.6f} | {n[0, 1].item():0.6f} | {n[0, 2].item():0.6f} | {n[0, 3].item():0.6f}')
@@ -161,6 +161,6 @@ class Model(nn.Module):
 
     def forward(self, x):
         self.flow.target(x)
-        qs = odeint(self.flow, self.qinit(x), th.arange(0.0, 7.01, 1.0) / 7.0, method='bosh3', rtol=0.1, atol=0.1, options={'max_num_steps': 13})
+        qs = odeint(self.flow, self.qinit(x), th.arange(0.0, 9.01, 1.0), method='bosh3', rtol=0.01, atol=0.01, options={'max_num_steps': 13})
 
         return self.skyview(normalize(qs[-1])), normalize(qs[-1])
