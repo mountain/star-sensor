@@ -72,7 +72,7 @@ class Net(nn.Module):
         self.conv6 = QuaternionConv(256, 512, kernel_size=3, stride=2, padding=1)
         self.conv7 = QuaternionConv(512, 1024, kernel_size=3, stride=2, padding=1)
         self.conv8 = QuaternionConv(1024, 2048, kernel_size=3, stride=2, padding=1)
-        self.fc = QuaternionLinear(2048, 8)
+        self.fc = QuaternionLinear(2048, 12)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -120,9 +120,11 @@ class Flow(nn.Module):
 
     def forward(self, t, q):
         es = self.estimator(th.cat((self.qview(q), self.vtarget), dim=1))
-        p, r = normalize(es[:, 0:4]), es[:, 4:8]
-        g = normalize(bhm(bhm(p, q + r), reciprocal(p)))
-        return normalize(self.tangent(q, g)) * th.sigmoid(3 - 6 * t) * np.pi
+        p, r, s = normalize(es[:, 0:4]), es[:, 4:8], es[:, 8:12]
+        g = normalize(bhm(bhm(p, q + r), reciprocal(p)) + s)
+        n = normalize(self.tangent(q, g)) * th.sigmoid(3 - 6 * t) * np.pi
+        logger.info(f't: {t[0].item():0.4f} | {n[0, 0].item():0.6f} | {n[0, 1].item():0.6f} | {n[0, 2].item():0.6f} | {n[0, 3].item():0.6f}')
+        return n
 
 
 class Model(nn.Module):
