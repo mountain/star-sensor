@@ -24,6 +24,10 @@ J.requires_grad = False
 K.requires_grad = False
 
 
+def dot(p, q):
+    return th.sum(p * q, dim=1, keepdim=True)
+
+
 def normsq(q):
     return th.sum(q * q, dim=1, keepdim=True)
 
@@ -123,7 +127,10 @@ class Flow(nn.Module):
         p, r, s = normalize(es[:, 0:4]), es[:, 4:8], es[:, 8:12]
         g = normalize(bhm(bhm(p, q + r), reciprocal(p)) + s)
         n = normalize(self.tangent(q, g)) * th.sigmoid(3 - 6 * t) * np.pi
+        logger.info('------------------------------------------------------------------------------------------------------------------')
+        logger.info(f't: {t.item():0.4f} | {q[0, 0].item():0.6f} | {q[0, 1].item():0.6f} | {q[0, 2].item():0.6f} | {q[0, 3].item():0.6f}')
         logger.info(f't: {t.item():0.4f} | {n[0, 0].item():0.6f} | {n[0, 1].item():0.6f} | {n[0, 2].item():0.6f} | {n[0, 3].item():0.6f}')
+        logger.info(f't: {t.item():0.4f} | {dot(q[0], n[0]).item():0.6f}')
         return n
 
 
