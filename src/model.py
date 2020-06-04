@@ -6,6 +6,7 @@ import torch.nn as nn
 import logging
 
 from unet.base import Swish
+from qnn.quaternion_layers import QuaternionConv, QuaternionLinear
 from util.sky import Skyview, cast
 from torchdiffeq import odeint_adjoint as odeint
 
@@ -64,14 +65,14 @@ class Net(nn.Module):
         self.relu = Swish()
         self.conv1 = nn.Conv2d(2, 16, kernel_size=3, stride=2, padding=1, bias=False)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, stride=2, padding=1)
-        self.conv3 = nn.Conv2d(32, 64, kernel_size=3, stride=2, padding=1)
-        self.conv4 = nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1)
-        self.conv5 = nn.Conv2d(128, 256, kernel_size=3, stride=2, padding=1)
-        self.conv6 = nn.Conv2d(256, 512, kernel_size=3, stride=2, padding=1)
-        self.conv7 = nn.Conv2d(512, 1024, kernel_size=3, stride=2, padding=1)
-        self.conv8 = nn.Conv2d(1024, 2048, kernel_size=3, stride=2, padding=1)
-        self.fc = nn.Linear(2048, 8)
+        self.conv2 = QuaternionConv(16, 32, kernel_size=3, stride=2, padding=1)
+        self.conv3 = QuaternionConv(32, 64, kernel_size=3, stride=2, padding=1)
+        self.conv4 = QuaternionConv(64, 128, kernel_size=3, stride=2, padding=1)
+        self.conv5 = QuaternionConv(128, 256, kernel_size=3, stride=2, padding=1)
+        self.conv6 = QuaternionConv(256, 512, kernel_size=3, stride=2, padding=1)
+        self.conv7 = QuaternionConv(512, 1024, kernel_size=3, stride=2, padding=1)
+        self.conv8 = QuaternionConv(1024, 2048, kernel_size=3, stride=2, padding=1)
+        self.fc = QuaternionLinear(2048, 8)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
