@@ -136,7 +136,7 @@ class Skyview(nn.Module):
         ras, decs = [], []
         for ix in range(bright_stars_count):
             record = filtered.iloc[[ix]]
-            epoch = 2448349.0625 + record[["epoch_year"]].iloc[0]["epoch_year"] * 365.25
+            epoch = 2448349.0625 + (record[["epoch_year"]].iloc[0]["epoch_year"] - 1991.25) * 365.25
             star = Star(
                 ra_hours=record[["ra_hours"]].iloc[0]["ra_hours"],
                 dec_degrees=record[["dec_degrees"]].iloc[0]["dec_degrees"],
@@ -210,15 +210,15 @@ class Skyview(nn.Module):
         frame = self.frame.detach().clone()
 
         upward = self.frame[:, 2, 0, :]
-        rotate_f = self.xyz2rot(upward[:, 0], upward[:, 1], upward[:, 2], - theta * self.rad1_2d)
+        rotate_f = self.xyz2rot(upward[:, 0], upward[:, 1], upward[:, 2], (0 - theta) * self.rad1_2d)
         frame = rotate_frames(rotate_f, frame)
 
         westward = self.frame[:, 0, 0, :]
-        rotate_f = self.xyz2rot(westward[:, 0], westward[:, 1], westward[:, 2], phi * self.rad1_2d)
+        rotate_f = self.xyz2rot(westward[:, 0], westward[:, 1], westward[:, 2], (0 + phi) * self.rad1_2d)
         frame = rotate_frames(rotate_f, frame)
 
         vertical = self.frame[:, 1, 0, :]
-        rotate_f = self.xyz2rot(vertical[:, 0], vertical[:, 1], vertical[:, 2], - alpha * self.rad1_2d)
+        rotate_f = self.xyz2rot(vertical[:, 0], vertical[:, 1], vertical[:, 2], (0 - alpha) * self.rad1_2d)
         frame = rotate_frames(rotate_f, frame)
 
         transfer = th.inverse(frame.view(3, 3))

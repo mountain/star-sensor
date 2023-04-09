@@ -38,7 +38,7 @@ plt.plot(
 
 trace = []
 for angle in range(0, 390, 30):
-    trace.append(sky.skyview(5.1995 * 15, 7.4070, angle))
+    trace.append(sky.skyview(5.9195 * 15, 7.4070, angle))
 trace = np.sum(trace, axis=0)
 plt.plot(
     open('betelgeuse.png', 'wb'),
