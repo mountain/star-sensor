@@ -13,7 +13,7 @@ def imgdata():
     if 'img' in dir(data):
         return data.img
     else:
-        data.img = np.zeros([512, 512, 4], dtype=np.uint8)
+        data.img = np.zeros([800, 800, 4], dtype=np.uint8)
         return data.img
 
 
@@ -278,7 +278,7 @@ COLORMAP = np.array([
 
 
 def colorize(data, out):
-    data = data.reshape(512, 512)
+    data = data.reshape(800, 800)
     fliped = (data[:, ::-1] * 2560).astype(np.uint8)
     return np.take(COLORMAP, fliped, axis=0, out=out)
 
