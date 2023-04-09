@@ -32,11 +32,22 @@ def cast(element):
 
 
 def get_init_frame():
-    return th.cat([
-        cast(np.array([0.0, 1.0, 0.0])).view(1, 3),
-        cast(np.array([1.0, 0.0, 0.0])).view(1, 3),
-        cast(np.array([0.0, 0.0, 1.0])).view(1, 3),
-    ], dim=0)
+    return th.cat(
+        [
+            cast(np.array([0.0, 0.0, 1.0])).view(1, 3),    # north
+            cast(np.array([1.0, 0.0, 0.0])).view(1, 3),    # west
+            cast(np.array([0.0, 1.0, 0.0])).view(1, 3),    # upward
+        ],
+        dim=0,
+    )
+
+
+def xyz3(az, alt):
+    batchsize = az.size()[0]
+    ux = (th.cos(alt) * th.cos(-az)).view(batchsize, 1, 1)
+    uy = (th.cos(alt) * th.sin(-az)).view(batchsize, 1, 1)
+    uz = th.sin(alt).view(batchsize, 1, 1)
+    return th.cat([ux, uy, uz], dim=1)
 
 
 def xyz2(lat):
@@ -49,8 +60,8 @@ def xyz2(lat):
 
 def xyz3(az, alt):
     batchsize = az.size()[0]
-    ux = - (th.cos(alt) * th.sin(2 * np.pi - az)).view(batchsize, 1, 1)
-    uy = - (th.cos(alt) * th.cos(2 * np.pi - az)).view(batchsize, 1, 1)
+    ux = (th.cos(alt) * th.sin(az)).view(batchsize, 1, 1)
+    uy = (th.cos(alt) * th.cos(az)).view(batchsize, 1, 1)
     uz = th.sin(alt).view(batchsize, 1, 1)
     return th.cat([ux, uy, uz], dim=1)
 
@@ -70,14 +81,14 @@ def quaternion(theta, phi, alpha):
     c = c.reshape(-1, 1, 1, 1)
     d = d.reshape(-1, 1, 1, 1)
 
-    return cast(np.concatenate((a, b, c, d), axis=1))
+    return a, b, c, d
 
 
-def quaternion2(ux, uy, uz, theta):
-    a = th.cos(theta / 2)        # size(batch)
-    b = th.sin(theta / 2) * ux   # size(batch)
-    c = th.sin(theta / 2) * uy   # size(batch)
-    d = th.sin(theta / 2) * uz   # size(batch)
+def quaternion2(ux, uy, uz, alpha):
+    a = th.cos(alpha / 2)        # size(batch)
+    b = th.sin(alpha / 2) * ux   # size(batch)
+    c = th.sin(alpha / 2) * uy   # size(batch)
+    d = th.sin(alpha / 2) * uz   # size(batch)
 
     a = a.view(-1, 1, 1, 1)
     b = b.view(-1, 1, 1, 1)
@@ -117,21 +128,20 @@ def plateu(val):
 
 
 class Skyview(nn.Module):
-
     def __init__(self):
         super(Skyview, self).__init__()
 
-        magnitude = (8 - cast(np.array(filtered['magnitude'])).view(1, bright_stars_count)) / 10
+        magnitude = (8 - cast(np.array(filtered["magnitude"])).view(1, bright_stars_count)) / 10
 
         ras, decs = [], []
         for ix in range(bright_stars_count):
             record = filtered.iloc[[ix]]
-            epoch = 1721045.0 + record[['epoch_year']].iloc[0]['epoch_year'] * 365.25
+            epoch = 2448349.0625 + record[["epoch_year"]].iloc[0]["epoch_year"] * 365.25
             star = Star(
-                ra_hours=record[['ra_hours']].iloc[0]['ra_hours'],
-                dec_degrees=record[['dec_degrees']].iloc[0]['dec_degrees'],
-                ra_mas_per_year=record[['ra_mas_per_year']].iloc[0][0],
-                dec_mas_per_year=record[['dec_mas_per_year']].iloc[0][0],
+                ra_hours=record[["ra_hours"]].iloc[0]["ra_hours"],
+                dec_degrees=record[["dec_degrees"]].iloc[0]["dec_degrees"],
+                ra_mas_per_year=record[["ra_mas_per_year"]].iloc[0][0],
+                dec_mas_per_year=record[["dec_mas_per_year"]].iloc[0][0],
                 epoch=epoch,
             )
             ras.append(cast([[star.ra.hours]]))
@@ -151,17 +161,29 @@ class Skyview(nn.Module):
         self.t22 = cast(np.array([[0, 0, 0], [0, 0, 0], [0, 0, 1]])).view(1, 1, 3, 3)
 
         self.magnitude_map = {
-            1: th.cat([magnitude for _ in range(1)], dim=0).view(1, bright_stars_count, 1),
+            1: th.cat([magnitude for i in range(1)], dim=0).view(1, bright_stars_count, 1),
         }
-        self.magnitude_map[1].requires_grad_(False)
 
-        self.I = cast(np.eye(3, 3)).view(1, 3, 3)
+        self.I = cast(np.eye(3, 3)).view(1, 3, 3)    # noqa
 
-        self.background = th.zeros(1, bright_stars_count, 512, 512).to(device)
-        self.background_map = {
-            1: th.cat([self.background.zero_().clone() for _ in range(1)], dim=0),
-        }
-        self.background_map[1].requires_grad_(False)
+        self.gaussian = Gaussian()
+
+        self.background = th.zeros(bright_stars_count, 512, 512).to(device)
+        self.frame = get_init_frame().view(-1, 3, 1, 3)
+
+        self.deg1_1d = cast([1.0 / 180 * np.pi])
+        self.rad1_2d = cast([[1.0]])
+
+        self.sphere = xyz3(self.ras * 15 / 180.0 * np.pi, self.decs).view(1, bright_stars_count, 3, 1)    # size(1, bright_stars_count, 3, 1)
+
+    def rot(self, a, b, c, d):
+        rot = ((a * a + b * b - c * c - d * d) * self.t00 + (2 * (b * c - a * d)) * self.t01 +
+               (2 * (b * d + a * c)) * self.t02 + (2 * (b * c + a * d)) * self.t10 +
+               (a * a + c * c - b * b - d * d) * self.t11 + (2 * (c * d - a * b)) * self.t12 +
+               (2 * (b * d - a * c)) * self.t20 + (2 * (c * d + a * b)) * self.t21 +
+               (a * a + d * d - b * b - c * c) * self.t22)
+
+        return rot.view(-1, 3, 3)
 
     def rotate(self, p1, p2):
         batchsize = p1.size()[0]
@@ -172,48 +194,47 @@ class Skyview(nn.Module):
 
         return 2 * s * t / r - self.I
 
-    def q2rot(self, q):
-        a, b, c, d = q[:, 0:1], q[:, 1:2], q[:, 2:3], q[:, 3:4]
-        a = a.view(-1, 1, 1, 1)
-        b = b.view(-1, 1, 1, 1)
-        c = c.view(-1, 1, 1, 1)
-        d = d.view(-1, 1, 1, 1)
-
-        rot = (a * a + b * b - c * c - d * d) * self.t00 + (2 * (b * c - a * d)) * self.t01 + (2 * (b * d + a * c)) * self.t02 \
-              + (2 * (b * c + a * d)) * self.t10 + (a * a - b * b + c * c - d * d) * self.t11 + (2 * (c * d - a * b)) * self.t12 \
-              + (2 * (b * d - a * c)) * self.t20 + (2 * (c * d + a * b)) * self.t21 + (a * a - b * b - c * c + d * d) * self.t22
-
-        return rot.view(-1, 3, 3)
+    def angles2rot(self, theta, phi, alpha):
+        a, b, c, d = quaternion(theta, phi, alpha)
+        return self.rot(a, b, c, d)
 
     def xyz2rot(self, ux, uy, uz, theta):
         a, b, c, d = quaternion2(ux, uy, uz, theta)
-        rot = (a * a + b * b - c * c - d * d) * self.t00 + (2 * (b * c - a * d)) * self.t01 + (2 * (b * d + a * c)) * self.t02 \
-              + (2 * (b * c + a * d)) * self.t10 + (a * a + c * c - b * b - d * d) * self.t11 + (2 * (c * d - a * b)) * self.t12 \
-              + (2 * (b * d - a * c)) * self.t20 + (2 * (c * d + a * b)) * self.t21 + (a * a + d * d - b * b - c * c) * self.t22
+        return self.rot(a, b, c, d)
 
-        return rot.view(-1, 3, 3)
+    def transfer(self, theta, phi, alpha):
+        theta = theta * self.deg1_1d
+        phi = phi * self.deg1_1d
+        alpha = alpha * self.deg1_1d
 
-    def sphere(self):
-        hars = - self.ras * 15 / 180.0 * np.pi
-        sphere = xyz3(hars, self.decs).view(1, bright_stars_count, 3, 1)  # size(1, bright_stars_count, 3, 1)
+        frame = self.frame.detach().clone()
 
-        return sphere
+        upward = self.frame[:, 2, 0, :]
+        rotate_f = self.xyz2rot(upward[:, 0], upward[:, 1], upward[:, 2], - theta * self.rad1_2d)
+        frame = rotate_frames(rotate_f, frame)
+
+        westward = self.frame[:, 0, 0, :]
+        rotate_f = self.xyz2rot(westward[:, 0], westward[:, 1], westward[:, 2], phi * self.rad1_2d)
+        frame = rotate_frames(rotate_f, frame)
+
+        vertical = self.frame[:, 1, 0, :]
+        rotate_f = self.xyz2rot(vertical[:, 0], vertical[:, 1], vertical[:, 2], - alpha * self.rad1_2d)
+        frame = rotate_frames(rotate_f, frame)
+
+        transfer = th.inverse(frame.view(3, 3))
+
+        return transfer
 
     def mk_sky(self, points):
         batchsize = points.size()[0]
 
-        if batchsize not in self.magnitude_map:
-            ms = self.magnitude_map[1]
-            self.magnitude_map[batchsize] = ms.expand(batchsize, -1, -1, -1)
-            bk = self.background_map[1]
-            self.background_map[batchsize] = bk.expand(batchsize, bright_stars_count, 512, 512)
+        mags = self.magnitude_map[batchsize]
 
-        mags = self.magnitude_map[batchsize].clone()
-        mags.requires_grad_(False)
-        background = self.background_map[batchsize].zero_().reshape(-1, 512, 512).clone()
-        background.requires_grad_(False)
-
-        uxs, uys, uzs = points[:, :, 0], points[:, :, 1], points[:, :, 2]  # size(batchsize, bright_stars_count, 1)
+        uxs, uys, uzs = (
+            points[:, :, 0],
+            points[:, :, 1],
+            points[:, :, 2],
+        )    # size(batchsize, bright_stars_count, 1)
 
         # Orthographic
         alps = th.atan2(uys, uxs)
@@ -222,30 +243,29 @@ class Skyview(nn.Module):
         cs = th.cos(dlts) * th.cos(alps)
         xs = th.cos(dlts) * th.sin(alps)
         ys = th.sin(dlts)
-        filtered = (plateu(xs) * plateu(ys) * th.relu(cs)).view(batchsize, bright_stars_count, 1, 1)
-
-        # Stereographic
-        # xs = uzs / (1 + uxs)
-        # ys = uys / (1 + uxs)
-        # filtered = (plateu(xs) * plateu(ys)).view(batchsize, bright_stars_count, 1, 1)
+        filtered = ((th.abs(xs) < hwin) * (th.abs(ys) < hwin) * (cs > 0)).view(batchsize, bright_stars_count, 1, 1)
+        # filtered = (plateu(xs) * plateu(ys) * th.relu(cs)).view(batchsize, bright_stars_count, 1, 1)
 
         ix = (256 + (256 * window(xs))).long().view(batchsize * bright_stars_count)
         iy = (256 + (256 * window(ys))).long().view(batchsize * bright_stars_count)
         ix = (ix * (ix < 512).long() + 511 * (ix > 511).long()) * (ix >= 0).long()
         iy = (iy * (iy < 512).long() + 511 * (iy > 511).long()) * (iy >= 0).long()
 
+        background = th.cat([self.background.clone() for _ in range(batchsize)], dim=0)
         background[:, ix, iy] = th.diag(mags.view(batchsize * bright_stars_count))
         background = background.view(batchsize, bright_stars_count, 512, 512)
-        background.requires_grad_(False)
         field = th.sum(filtered.float() * background, dim=1, keepdim=True)
-        #logger.info(f'field: {field.max().item():0.6f} {field.min().item():0.6f} {field.mean().item():0.6f}')
 
-        return Gaussian(3)(field)
+        return self.gaussian(field)
 
-    def forward(self, qs):
-        sphere = self.sphere() # size(1, bright_stars_count, 3, 1)
-        transfer = self.q2rot(qs) # size(batch, 3, 3)
-        sphere = rotate_points(transfer, sphere)
-        sky = self.mk_sky(sphere).view(-1, 1, 512, 512)
+    def forward(self, theta, phi, alpha):
+        transfer = self.transfer(theta, phi, alpha)
+        sphere = rotate_points(transfer, self.sphere)
+        sky = self.mk_sky(sphere).view(512, 512).detach().cpu().numpy()[::-1, :]
 
         return sky
+
+
+skyview = Skyview()
+if th.cuda.is_available():
+    skyview.cuda()

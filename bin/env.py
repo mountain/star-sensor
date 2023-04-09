@@ -60,4 +60,4 @@ Check virtual enviroment
 
 if not os.path.exists(".py"):
     sys.argv = ['virtualenv', '.py']
-    venv.main()
+    venv.cli_run(['.py'])

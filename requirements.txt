@@ -4,18 +4,10 @@ nujson
 numpy
 pandas
 scipy
-numba
 leibniz
-torchdiffeq
 
 Pillow
 matplotlib
 opencv-python
 
 skyfield
-healpy
-
-gevent
-redis
-gunicorn
-flask
