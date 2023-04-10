@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import os
-import numpy as np
 import torch as th
 import torch.nn as nn
+import numpy as np
 import logging
 
 from skyfield.api import Star
@@ -17,6 +17,8 @@ logger = logging.getLogger()
 if th.cuda.is_available():
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     device = th.device('cuda')
+elif th.backends.mps.is_available() and th.backends.mps.is_built():
+    device = th.device('mps')
 else:
     device = th.device('cpu')
 
