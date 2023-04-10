@@ -4,9 +4,8 @@ import cv2
 import numpy as np
 
 from threading import local
+from util.config import hnum, vnum
 
-hnum = 800
-vnum = 1280
 
 data = local()
 

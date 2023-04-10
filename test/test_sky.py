@@ -2,9 +2,8 @@ import torch as th
 import util.sky as sky
 import util.plotter as plt
 
+from util.config import hnum, vnum
 
-hnum = 800
-vnum = 1280
 
 with th.no_grad():
     view = sky.skyview(0.0, 0.0, 0.0)

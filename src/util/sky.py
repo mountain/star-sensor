@@ -9,6 +9,7 @@ import logging
 from skyfield.api import Star
 from util.stars import bright_stars_count, filtered
 from util.gauss import Gaussian
+from util.config import hnum, vnum, hwin, vwin
 
 
 logger = logging.getLogger()
@@ -18,11 +19,6 @@ if th.cuda.is_available():
     device = th.device('cuda')
 else:
     device = th.device('cpu')
-
-hnum = 800
-vnum = 1280
-hwin = 442.9 / 60 / 180 * np.pi / 2
-vwin = 276.8 / 60 / 180 * np.pi / 2
 
 
 def cast(element):
@@ -100,8 +96,8 @@ def quaternion2(ux, uy, uz, alpha):
     return a, b, c, d
 
 
-def window(coord):
-    return th.fmod(coord, hwin) / hwin
+def window(coord, win):
+    return th.fmod(coord, win) / win
 
 
 def rotate_points(rot, points):
@@ -166,17 +162,15 @@ class Skyview(nn.Module):
             1: th.cat([magnitude for i in range(1)], dim=0).view(1, bright_stars_count, 1),
         }
 
-        self.I = cast(np.eye(3, 3)).view(1, 3, 3)    # noqa
-
-        self.gaussian = Gaussian()
-
-        self.background = th.zeros(bright_stars_count, hnum, vnum).to(device)
+        self.sphere = xyz3(self.ras * 15 / 180.0 * np.pi, self.decs).view(1, bright_stars_count, 3, 1)
         self.frame = get_init_frame().view(-1, 3, 1, 3)
+        self.background = th.zeros(bright_stars_count, hnum, vnum).to(device)
+
+        self.I = cast(np.eye(3, 3)).view(1, 3, 3)    # noqa
+        self.gaussian = Gaussian()
 
         self.deg1_1d = cast([1.0 / 180 * np.pi])
         self.rad1_2d = cast([[1.0]])
-
-        self.sphere = xyz3(self.ras * 15 / 180.0 * np.pi, self.decs).view(1, bright_stars_count, 3, 1)    # size(1, bright_stars_count, 3, 1)
 
     def rot(self, a, b, c, d):
         rot = ((a * a + b * b - c * c - d * d) * self.t00 + (2 * (b * c - a * d)) * self.t01 +
@@ -245,18 +239,18 @@ class Skyview(nn.Module):
         cs = th.cos(dlts) * th.cos(alps)
         xs = th.cos(dlts) * th.sin(alps)
         ys = th.sin(dlts)
-        filtered = ((th.abs(xs) < hwin) * (th.abs(ys) < hwin) * (cs > 0)).view(batchsize, bright_stars_count, 1, 1)
-        # filtered = (plateu(xs) * plateu(ys) * th.relu(cs)).view(batchsize, bright_stars_count, 1, 1)
+        star_filter = ((th.abs(xs) < hwin) * (th.abs(ys) < hwin) * (cs > 0)).view(batchsize, bright_stars_count, 1, 1)
+        # star_filter = (plateu(xs) * plateu(ys) * th.relu(cs)).view(batchsize, bright_stars_count, 1, 1)
 
-        ix = (hnum // 2 + (hnum // 2 * window(xs))).long().view(batchsize * bright_stars_count)
-        iy = (vnum // 2 + (vnum // 2 * window(ys))).long().view(batchsize * bright_stars_count)
+        ix = (hnum // 2 + (hnum // 2 * window(xs, hwin))).long().view(batchsize * bright_stars_count)
+        iy = (vnum // 2 + (vnum // 2 * window(ys, vwin))).long().view(batchsize * bright_stars_count)
         ix = (ix * (ix < hnum).long() + (hnum - 1) * (ix > hnum - 1).long()) * (ix >= 0).long()
         iy = (iy * (iy < vnum).long() + (vnum - 1) * (iy > vnum - 1).long()) * (iy >= 0).long()
 
         background = th.cat([self.background.clone() for _ in range(batchsize)], dim=0)
         background[:, ix, iy] = th.diag(mags.view(batchsize * bright_stars_count))
         background = background.view(batchsize, bright_stars_count, hnum, vnum)
-        field = th.sum(filtered.float() * background, dim=1, keepdim=True)
+        field = th.sum(star_filter.float() * background, dim=1, keepdim=True)
 
         return self.gaussian(field)
 

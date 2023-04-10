@@ -7,6 +7,7 @@ from pytz import utc
 from skyfield.api import Star, Loader
 from skyfield.data import hipparcos
 from skyfield.api import Topos
+from util.config import limited_magnitude
 
 
 load = Loader('.', expire=False)
@@ -30,7 +31,7 @@ decm_solstice = Star(ra_hours=18, dec_degrees=0.0)
 
 ts = load.timescale()
 
-filtered = df[df['magnitude'] < 5.0]
+filtered = df[df['magnitude'] < limited_magnitude]
 filtered = filtered[filtered['ra_degrees'].notnull()]
 filtered = filtered[filtered['dec_degrees'].notnull()]
 bright_stars_count = len(filtered)
