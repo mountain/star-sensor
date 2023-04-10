@@ -5,6 +5,8 @@ import numpy as np
 
 from threading import local
 
+hnum = 800
+vnum = 1280
 
 data = local()
 
@@ -13,7 +15,7 @@ def imgdata():
     if 'img' in dir(data):
         return data.img
     else:
-        data.img = np.zeros([800, 800, 4], dtype=np.uint8)
+        data.img = np.zeros([hnum, vnum, 4], dtype=np.uint8)
         return data.img
 
 
@@ -278,7 +280,7 @@ COLORMAP = np.array([
 
 
 def colorize(data, out):
-    data = data.reshape(800, 800)
+    data = data.reshape(hnum, vnum)
     fliped = (data[:, ::-1] * 2560).astype(np.uint8)
     return np.take(COLORMAP, fliped, axis=0, out=out)
 

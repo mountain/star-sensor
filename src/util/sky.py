@@ -19,8 +19,10 @@ if th.cuda.is_available():
 else:
     device = th.device('cpu')
 
-hwin = 166.1 / 60 / 180 * np.pi / 2
-win = 2 * hwin
+hnum = 800
+vnum = 1280
+hwin = 442.9 / 60 / 180 * np.pi / 2
+vwin = 276.8 / 60 / 180 * np.pi / 2
 
 
 def cast(element):
@@ -168,7 +170,7 @@ class Skyview(nn.Module):
 
         self.gaussian = Gaussian()
 
-        self.background = th.zeros(bright_stars_count, 800, 800).to(device)
+        self.background = th.zeros(bright_stars_count, hnum, vnum).to(device)
         self.frame = get_init_frame().view(-1, 3, 1, 3)
 
         self.deg1_1d = cast([1.0 / 180 * np.pi])
@@ -246,14 +248,14 @@ class Skyview(nn.Module):
         filtered = ((th.abs(xs) < hwin) * (th.abs(ys) < hwin) * (cs > 0)).view(batchsize, bright_stars_count, 1, 1)
         # filtered = (plateu(xs) * plateu(ys) * th.relu(cs)).view(batchsize, bright_stars_count, 1, 1)
 
-        ix = (400 + (400 * window(xs))).long().view(batchsize * bright_stars_count)
-        iy = (400 + (400 * window(ys))).long().view(batchsize * bright_stars_count)
-        ix = (ix * (ix < 800).long() + 799 * (ix > 799).long()) * (ix >= 0).long()
-        iy = (iy * (iy < 800).long() + 799 * (iy > 799).long()) * (iy >= 0).long()
+        ix = (hnum // 2 + (hnum // 2 * window(xs))).long().view(batchsize * bright_stars_count)
+        iy = (vnum // 2 + (vnum // 2 * window(ys))).long().view(batchsize * bright_stars_count)
+        ix = (ix * (ix < hnum).long() + (hnum - 1) * (ix > hnum - 1).long()) * (ix >= 0).long()
+        iy = (iy * (iy < vnum).long() + (vnum - 1) * (iy > vnum - 1).long()) * (iy >= 0).long()
 
         background = th.cat([self.background.clone() for _ in range(batchsize)], dim=0)
         background[:, ix, iy] = th.diag(mags.view(batchsize * bright_stars_count))
-        background = background.view(batchsize, bright_stars_count, 800, 800)
+        background = background.view(batchsize, bright_stars_count, hnum, vnum)
         field = th.sum(filtered.float() * background, dim=1, keepdim=True)
 
         return self.gaussian(field)
@@ -261,7 +263,7 @@ class Skyview(nn.Module):
     def forward(self, theta, phi, alpha):
         transfer = self.transfer(theta, phi, alpha)
         sphere = rotate_points(transfer, self.sphere)
-        sky = self.mk_sky(sphere).view(800, 800).detach().cpu().numpy()[::-1, :]
+        sky = self.mk_sky(sphere).view(hnum, vnum).detach().cpu().numpy()[::-1, :]
 
         return sky
 
