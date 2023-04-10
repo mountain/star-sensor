@@ -27,6 +27,8 @@ def cast(element):
     element = np.array(element, dtype=np.float32)
     if th.cuda.is_available():
         return th.FloatTensor(element).cuda()
+    elif th.backends.mps.is_available() and th.backends.mps.is_built():
+        return th.FloatTensor(element).to(device)
     else:
         return th.FloatTensor(element)
 
@@ -169,7 +171,7 @@ class Skyview(nn.Module):
         self.background = th.zeros(bright_stars_count, hnum, vnum).to(device)
 
         self.I = cast(np.eye(3, 3)).view(1, 3, 3)    # noqa
-        self.gaussian = Gaussian()
+        self.gaussian = Gaussian().to(device)
 
         self.deg1_1d = cast([1.0 / 180 * np.pi])
         self.rad1_2d = cast([[1.0]])
@@ -226,8 +228,6 @@ class Skyview(nn.Module):
     def mk_sky(self, points):
         batchsize = points.size()[0]
 
-        mags = self.magnitude_map[batchsize]
-
         uxs, uys, uzs = (
             points[:, :, 0],
             points[:, :, 1],
@@ -249,10 +249,13 @@ class Skyview(nn.Module):
         ix = (ix * (ix < hnum).long() + (hnum - 1) * (ix > hnum - 1).long()) * (ix >= 0).long()
         iy = (iy * (iy < vnum).long() + (vnum - 1) * (iy > vnum - 1).long()) * (iy >= 0).long()
 
-        background = th.cat([self.background.clone() for _ in range(batchsize)], dim=0)
-        background[:, ix, iy] = th.diag(mags.view(batchsize * bright_stars_count))
-        background = background.view(batchsize, bright_stars_count, hnum, vnum)
-        field = th.sum(star_filter.float() * background, dim=1, keepdim=True)
+        mags = self.magnitude_map[1]
+        background = self.background.clone()
+        background[:, ix, iy] = th.diag(mags.view(bright_stars_count))
+        background = background.view(1, bright_stars_count, hnum, vnum)
+        field = th.zeros_like(star_filter[:, 0:1, :, :] * background[:, 0:1, :, :])
+        for ix in range(bright_stars_count):
+            field = field + star_filter[:, ix:ix+1, :, :] * background[:, ix:ix+1, :, :]
 
         return self.gaussian(field)
 
