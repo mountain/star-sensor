@@ -267,6 +267,4 @@ class Skyview(nn.Module):
         return sky
 
 
-skyview = Skyview()
-if th.cuda.is_available():
-    skyview.cuda()
+skyview = th.compile(Skyview().to(device))

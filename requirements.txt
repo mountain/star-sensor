@@ -1,13 +1,12 @@
-nose
-nujson
-
 numpy
 pandas
 scipy
+torch
+lightning
+
 leibniz
 
 Pillow
-matplotlib
 opencv-python
 
 skyfield
