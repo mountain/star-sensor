@@ -12,8 +12,14 @@ import numpy as np
 # vwin = hwin / hnum * vnum
 # limited_magnitude = 3.5
 
-hnum = 400
-vnum = 640
+# hnum = 400
+# vnum = 640
+# hwin = 276.8 / 60 / 180 * np.pi / 2
+# vwin = hwin / hnum * vnum
+# limited_magnitude = 6.0
+
+hnum = 512
+vnum = 512
 hwin = 276.8 / 60 / 180 * np.pi / 2
 vwin = hwin / hnum * vnum
 limited_magnitude = 6.0

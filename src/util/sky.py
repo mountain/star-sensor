@@ -241,7 +241,7 @@ class Skyview(nn.Module):
         cs = th.cos(dlts) * th.cos(alps)
         xs = th.cos(dlts) * th.sin(alps)
         ys = th.sin(dlts)
-        star_filter = ((th.abs(xs) < hwin) * (th.abs(ys) < hwin) * (cs > 0)).view(batchsize, bright_stars_count, 1, 1)
+        star_filter = ((th.abs(xs) < hwin) * (th.abs(ys) < vwin) * (cs > 0)).view(batchsize, bright_stars_count, 1, 1)
         # star_filter = (plateu(xs) * plateu(ys) * th.relu(cs)).view(batchsize, bright_stars_count, 1, 1)
 
         ix = (hnum // 2 + (hnum // 2 * window(xs, hwin))).long().view(batchsize * bright_stars_count)
@@ -267,4 +267,4 @@ class Skyview(nn.Module):
         return sky
 
 
-skyview = th.compile(Skyview().to(device))
+skyview = Skyview().to(device)
