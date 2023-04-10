@@ -1,3 +1,6 @@
+import os.path
+import sys
+
 import numpy as np
 import cv2
 
@@ -6,21 +9,29 @@ from util.config import hnum, vnum
 
 
 def main():
-    for ix in range(10000):
-        theta, phi = np.random.random(1) * np.pi * 2, (np.random.random(1) - 0.5) * np.pi
-        alpha = (2 * np.random.random(1) - 1) * np.pi
-        view = skyview(theta, phi, alpha)
-        view = view.reshape(1, hnum, vnum).detach().cpu().numpy()
+    with open('data/index.csv', 'w') as f:
+        for ix in range(10000):
+            theta, phi = float(np.random.random(1) * np.pi * 2), float((np.random.random(1) - 0.5) * np.pi)
+            alpha = float((2 * np.random.random(1) - 1) * np.pi)
+            lng = theta / np.pi * 180
+            lat = phi / np.pi * 180
+            rot = alpha / np.pi * 180
+            view = skyview(lng, lat, rot).reshape(hnum, vnum)
 
-        lng = theta / np.pi * 180
-        lat = phi / np.pi * 180
-        rot = alpha / np.pi * 180
-        subfolder = 'data/%d' % int(lng)
-        slng = ('%0.5f' % lng).replace('.', 'p')
-        slat = ('%0.5f' % lat).replace('.', 'p')
-        srot = ('%0.5f' % rot).replace('.', 'p')
-        fname = '%s/%s_%s_%s.png' % (subfolder, slng, slat, srot)
+            import secrets
+            token = secrets.token_hex(16)
+            subfolder = 'data/%s/%s' % (token[0:2], token[2:4])
+            if not os.path.exists(subfolder):
+                os.makedirs(subfolder)
+            fname = '%s/%s.png' % (subfolder, token)
+            cv2.imwrite(fname, view.reshape(hnum, vnum)[:, ::-1] * 2550)
+            f.write('%0.5f, %0.5f, %0.5f, %s\n' % (lng, lat, rot, fname))
+            f.flush()
+            print('.', end='')
+            if ix % 100 == 0:
+                print('\n')
+            sys.stdout.flush()
 
 
-
-
+if __name__ == "__main__":
+    main()
