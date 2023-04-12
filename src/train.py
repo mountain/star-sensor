@@ -8,7 +8,7 @@ from torch.utils.data import random_split
 from data.dataset import StarDataset
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-n", "--n_epochs", type=int, default=50, help="number of epochs of training")
+parser.add_argument("-n", "--n_epochs", type=int, default=200, help="number of epochs of training")
 parser.add_argument("-m", "--model", type=str, default='baseline', help="model to execute")
 opt = parser.parse_args()
 

@@ -9,7 +9,7 @@ from util.config import hnum, vnum, device
 
 class RegressionResNet(ResNet):
     def __init__(self) -> None:
-        super().__init__(Bottleneck, [2, 2, 2, 2], 3, False, 1)
+        super().__init__(Bottleneck, [3, 4, 6, 3], 3, False, 1)
 
 
 class Baseline(pl.LightningModule):
