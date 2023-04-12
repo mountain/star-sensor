@@ -59,7 +59,7 @@ class Baseline(pl.LightningModule):
 
     def training_step(self, train_batch, batch_idx):
         theta, phi, alpha, sky = train_batch
-        constants = self.constants.view(-1, 4, hnum, vnum)
+        constants = self.constants.view(-1, 3, hnum, vnum)
         sky = sky.view(-1, 1, hnum, vnum)
         data = th.cat([sky, constants * th.ones_like(sky[:, 0:1])], dim=1)
         theta_hat, phi_hat, alpha_hat = self(data)
@@ -74,7 +74,7 @@ class Baseline(pl.LightningModule):
         theta, phi, alpha, sky = val_batch
         sky = sky.view(-1, 1, hnum, vnum)
         theta, phi, alpha, sky = theta, phi, alpha, sky
-        constants = self.constants.view(-1, 4, hnum, vnum)
+        constants = self.constants.view(-1, 3, hnum, vnum)
         data = th.cat([sky, constants * th.ones_like(sky[:, 0:1])], dim=1)
         theta_hat, phi_hat, alpha_hat = self(data)
         loss_theta = F.mse_loss(theta_hat.view(-1, 1), theta.view(-1, 1))
