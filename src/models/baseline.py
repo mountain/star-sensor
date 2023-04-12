@@ -35,7 +35,7 @@ class Baseline(pl.LightningModule):
             self.relu,
             self.dnsample,
             nn.Flatten(),
-            nn.Linear(61952, 3, dtype=th.float32),
+            nn.Linear(12800, 3, dtype=th.float32),
             nn.Tanh()
         )
 
