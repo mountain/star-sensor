@@ -1,4 +1,6 @@
+import os
 import numpy as np
+import torch as th
 
 # hnum = 512
 # vnum = 512
@@ -23,3 +25,13 @@ vnum = 512
 hwin = 540 / 60 / 180 * np.pi / 2
 vwin = hwin / hnum * vnum
 limited_magnitude = 5.7
+
+
+if th.cuda.is_available():
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+    device = th.device('cuda')
+elif th.backends.mps.is_available() and th.backends.mps.is_built():
+    device = th.device('mps')
+else:
+    device = th.device('cpu')
+

@@ -9,18 +9,10 @@ import logging
 from skyfield.api import Star
 from util.stars import bright_stars_count, filtered
 from util.gauss import Gaussian
-from util.config import hnum, vnum, hwin, vwin
+from util.config import hnum, vnum, hwin, vwin, device
 
 
 logger = logging.getLogger()
-
-if th.cuda.is_available():
-    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
-    device = th.device('cuda')
-elif th.backends.mps.is_available() and th.backends.mps.is_built():
-    device = th.device('mps')
-else:
-    device = th.device('cpu')
 
 
 def cast(element):
