@@ -3,11 +3,12 @@ import pytorch_lightning as pl
 
 from torch.utils.data import DataLoader
 from torch.utils.data import random_split
+from util.config import device
 from data.dataset import StarDataset
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-n", "--n_epochs", type=int, default=50, help="number of epochs of training")
-parser.add_argument("-m", "--model", type=str, default='v0', help="model to execute")
+parser.add_argument("-m", "--model", type=str, default='baseline', help="model to execute")
 opt = parser.parse_args()
 
 print('loading data...')
@@ -19,7 +20,7 @@ train_loader = DataLoader(star_train, batch_size=32)
 val_loader = DataLoader(star_val, batch_size=32)
 
 # training
-trainer = pl.Trainer(gpus=1, num_nodes=8, precision=16, limit_train_batches=0.5)
+trainer = pl.Trainer(accelerator="mps", devices=1, precision=32, limit_train_batches=0.5)
 
 
 if __name__ == '__main__':
@@ -27,6 +28,5 @@ if __name__ == '__main__':
     mdl = importlib.import_module('models.%s' % opt.model, package=None)
     model = mdl._model_()
 
-    trainer.fit(model)
-    trainer.test(ckpt_path="best")
+    trainer.fit(model, train_loader, val_loader)
 

@@ -10,35 +10,37 @@ from util.config import hnum, vnum, device
 class Baseline(pl.LightningModule):
     def __init__(self):
         super().__init__()
+        self.relu = nn.ReLU()
         self.predicter = nn.Sequential(
-            nn.Conv2d(4, 8, kernel_size=3, padding=1, stride=2),
-            nn.ReLU(),
-            nn.Conv2d(8, 16, kernel_size=3, padding=1, stride=2),
-            nn.ReLU(),
-            nn.Conv2d(16, 32, kernel_size=3, padding=1, stride=2),
-            nn.ReLU(),
-            nn.Conv2d(32, 64, kernel_size=3, padding=1, stride=2),
-            nn.ReLU(),
-            nn.Conv2d(64, 128, kernel_size=3, padding=1, stride=2),
-            nn.ReLU(),
-            nn.Conv2d(128, 256, kernel_size=3, padding=1, stride=2),
-            nn.ReLU(),
-            nn.Conv2d(256, 512, kernel_size=3, padding=1, stride=2),
-            nn.ReLU(),
-            nn.Linear(512, 3),
+            nn.Conv2d(4, 8, kernel_size=3, padding=1, dilation=2, dtype=th.float32),
+            self.relu,
+            nn.Conv2d(8, 16, kernel_size=3, padding=1, dilation=2, dtype=th.float32),
+            self.relu,
+            nn.Conv2d(16, 32, kernel_size=3, padding=1, dilation=2, dtype=th.float32),
+            self.relu,
+            nn.Conv2d(32, 64, kernel_size=3, padding=1, dilation=2, dtype=th.float32),
+            self.relu,
+            nn.Conv2d(64, 128, kernel_size=3, padding=1, dilation=2, dtype=th.float32),
+            self.relu,
+            nn.Conv2d(128, 256, kernel_size=3, padding=1, dilation=2, dtype=th.float32),
+            self.relu,
+            nn.Conv2d(256, 512, kernel_size=3, padding=1, dilation=2, dtype=th.float32),
+            self.relu,
+            nn.Linear(512, 3, dtype=th.float32),
             nn.Tanh()
         )
 
-        g0 = th.linspace(-1, 1, hnum, requires_grad=False)
-        g1 = th.linspace(-1, 1, vnum, requires_grad=False)
+        g0 = th.linspace(-1, 1, hnum, requires_grad=False, dtype=th.float32)
+        g1 = th.linspace(-1, 1, vnum, requires_grad=False, dtype=th.float32)
         grid = th.cat(th.meshgrid([g0, g1]), dim=1).reshape(1, 2, hnum, vnum)
         r = th.sqrt(grid[:, 0:1] * grid[:, 0:1] + grid[:, 1:2] * grid[:, 1:2])
         a = th.atan2(grid[:, 0:1], grid[:, 1:2])
         c = th.cos(a)
         s = th.sin(a)
-        self.constants = th.cat([r, s, c], dim=1).to(device)
+        self.constants = th.cat([r, s, c], dim=1).reshape(1, 3, hnum, vnum)
 
     def forward(self, sky):
+        sky = sky
         result = self.predicter(sky) * th.pi
         theta, phi, alpha = result[:, 0], result[:, 1], result[:, 2]
         return theta, phi, alpha
@@ -49,9 +51,11 @@ class Baseline(pl.LightningModule):
 
     def training_step(self, train_batch, batch_idx):
         theta, phi, alpha, sky = train_batch
-        theta, phi, alpha, sky = theta.to(device), phi.to(device), alpha.to(device), sky.to(device)
+        theta, phi, alpha, sky = theta, phi, alpha, sky
+        constants = self.constants.clone() * th.ones_like(sky[:, 0:1])
+        constants = constants.view(-1, 3, hnum, vnum)
         sky = sky.view(-1, 1, hnum, vnum)
-        data = th.cat([sky, self.constants], dim=1)
+        data = th.cat([sky, constants], dim=1)
         theta_hat, phi_hat, alpha_hat = self.predicter(data)
         loss_theta = F.mse_loss(theta_hat, theta)
         loss_phi = F.mse_loss(phi_hat, phi)
@@ -62,9 +66,13 @@ class Baseline(pl.LightningModule):
 
     def validation_step(self, val_batch, batch_idx):
         theta, phi, alpha, sky = val_batch
-        theta, phi, alpha, sky = theta.to(device), phi.to(device), alpha.to(device), sky.to(device)
         sky = sky.view(-1, 1, hnum, vnum)
-        data = th.cat([sky, self.constants], dim=1)
+        theta, phi, alpha, sky = theta, phi, alpha, sky
+        constants = self.constants.view(-1, 3, hnum, vnum)
+        constants = constants * th.ones_like(sky[:, 0:1])
+        constants = constants.view(-1, 3, hnum, vnum)
+        sky = sky.view(-1, 1, hnum, vnum)
+        data = th.cat([sky, constants], dim=1)
         theta_hat, phi_hat, alpha_hat = self.predicter(data)
         loss_theta = F.mse_loss(theta_hat, theta)
         loss_phi = F.mse_loss(phi_hat, phi)
@@ -75,8 +83,6 @@ class Baseline(pl.LightningModule):
 
 
 def _model_():
-    m = Baseline()
-    m.to(device)
-    return m
+    return Baseline()
 
 
