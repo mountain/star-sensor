@@ -3,8 +3,7 @@ import pytorch_lightning as pl
 
 from torch.utils.data import DataLoader
 from torch.utils.data import random_split
-from torchvision.datasets import MNIST
-from torchvision import transforms
+from data.dataset import StarDataset
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-n", "--n_epochs", type=int, default=50, help="number of epochs of training")
@@ -13,7 +12,7 @@ opt = parser.parse_args()
 
 print('loading data...')
 
-dataset = MNIST('', train=True, download=True, transform=transforms.ToTensor())
+dataset = StarDataset()
 star_train, star_val = random_split(dataset, [9000, 1000])
 
 train_loader = DataLoader(star_train, batch_size=32)
