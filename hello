@@ -9,7 +9,7 @@ CLR_YLW="\x1b[33m" # YELLOW text
 export PRJ_HOME=`pwd`
 
 echo -e "${CLR_YLW}Checking Python version......${CLR_NOR}"
-PYV=`python -c "import sys;t='{v[0]}.{v[1]}'.format(v=list(sys.version_info[:2]));sys.stdout.write(t)";`
+PYV=`python3 -c "import sys;t='{v[0]}.{v[1]}'.format(v=list(sys.version_info[:2]));sys.stdout.write(t)";`
 if [[ $PYV == 2.7 ]]
 then
     PY=python3;
@@ -20,8 +20,8 @@ then
 fi
 if [[ $PYV == 3* ]]
 then
-    PY=python;
-    PIP=pip;
+    PY=python3;
+    PIP=pip3;
     PIP_INST="pip install -i https://pypi.douban.com/simple/";
     NTB="jupyter notebook";
     TEST="nosetests"

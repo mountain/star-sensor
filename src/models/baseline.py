@@ -12,21 +12,28 @@ class Baseline(pl.LightningModule):
         super().__init__()
         self.relu = nn.ReLU()
         self.predicter = nn.Sequential(
-            nn.Conv2d(4, 8, kernel_size=3, padding=1, dilation=2, dtype=th.float32),
+            nn.Conv2d(4, 8, kernel_size=3, padding=2, dtype=th.float32),
             self.relu,
-            nn.Conv2d(8, 16, kernel_size=3, padding=1, dilation=2, dtype=th.float32),
+            nn.UpsamplingBilinear2d(scale_factor=0.5),
+            nn.Conv2d(8, 16, kernel_size=3, padding=2, dtype=th.float32),
             self.relu,
-            nn.Conv2d(16, 32, kernel_size=3, padding=1, dilation=2, dtype=th.float32),
+            nn.UpsamplingBilinear2d(scale_factor=0.5),
+            nn.Conv2d(16, 32, kernel_size=3, padding=2, dtype=th.float32),
             self.relu,
-            nn.Conv2d(32, 64, kernel_size=3, padding=1, dilation=2, dtype=th.float32),
+            nn.UpsamplingBilinear2d(scale_factor=0.5),
+            nn.Conv2d(32, 64, kernel_size=3, padding=2, dtype=th.float32),
             self.relu,
-            nn.Conv2d(64, 128, kernel_size=3, padding=1, dilation=2, dtype=th.float32),
+            nn.UpsamplingBilinear2d(scale_factor=0.5),
+            nn.Conv2d(64, 128, kernel_size=3, padding=2, dtype=th.float32),
             self.relu,
-            nn.Conv2d(128, 256, kernel_size=3, padding=1, dilation=2, dtype=th.float32),
+            nn.UpsamplingBilinear2d(scale_factor=0.5),
+            nn.Conv2d(128, 256, kernel_size=3, padding=2, dtype=th.float32),
             self.relu,
-            nn.Conv2d(256, 512, kernel_size=3, padding=1, dilation=2, dtype=th.float32),
+            nn.UpsamplingBilinear2d(scale_factor=0.5),
+            nn.Conv2d(256, 512, kernel_size=3, padding=2, dtype=th.float32),
             self.relu,
-            nn.Linear(512, 3, dtype=th.float32),
+            nn.Flatten(),
+            nn.Linear(61952, 3, dtype=th.float32),
             nn.Tanh()
         )
 
@@ -37,12 +44,11 @@ class Baseline(pl.LightningModule):
         a = th.atan2(grid[:, 0:1], grid[:, 1:2])
         c = th.cos(a)
         s = th.sin(a)
-        self.constants = th.cat([r, s, c], dim=1).reshape(1, 3, hnum, vnum)
+        self.constants = th.cat([r, s, c], dim=1).reshape(1, 3, hnum, vnum).to(device)
 
     def forward(self, sky):
-        sky = sky
-        result = self.predicter(sky) * th.pi
-        theta, phi, alpha = result[:, 0], result[:, 1], result[:, 2]
+        result = self.predicter(sky) * 180
+        theta, phi, alpha = result[:, 0:1], result[:, 1:2], result[:, 2:3]
         return theta, phi, alpha
 
     def configure_optimizers(self):
@@ -51,15 +57,13 @@ class Baseline(pl.LightningModule):
 
     def training_step(self, train_batch, batch_idx):
         theta, phi, alpha, sky = train_batch
-        theta, phi, alpha, sky = theta, phi, alpha, sky
-        constants = self.constants.clone() * th.ones_like(sky[:, 0:1])
-        constants = constants.view(-1, 3, hnum, vnum)
+        constants = self.constants.view(-1, 3, hnum, vnum)
         sky = sky.view(-1, 1, hnum, vnum)
-        data = th.cat([sky, constants], dim=1)
-        theta_hat, phi_hat, alpha_hat = self.predicter(data)
-        loss_theta = F.mse_loss(theta_hat, theta)
-        loss_phi = F.mse_loss(phi_hat, phi)
-        loss_alpha = F.mse_loss(alpha_hat, alpha)
+        data = th.cat([sky, constants * th.ones_like(sky[:, 0:1])], dim=1)
+        theta_hat, phi_hat, alpha_hat = self(data)
+        loss_theta = F.mse_loss(theta_hat.view(-1, 1), theta.view(-1, 1))
+        loss_phi = F.mse_loss(phi_hat.view(-1, 1), phi.view(-1, 1))
+        loss_alpha = F.mse_loss(alpha_hat.view(-1, 1), alpha.view(-1, 1))
         loss = loss_theta + loss_phi + loss_alpha
         self.log('train_loss', loss)
         return loss
@@ -69,14 +73,11 @@ class Baseline(pl.LightningModule):
         sky = sky.view(-1, 1, hnum, vnum)
         theta, phi, alpha, sky = theta, phi, alpha, sky
         constants = self.constants.view(-1, 3, hnum, vnum)
-        constants = constants * th.ones_like(sky[:, 0:1])
-        constants = constants.view(-1, 3, hnum, vnum)
-        sky = sky.view(-1, 1, hnum, vnum)
-        data = th.cat([sky, constants], dim=1)
-        theta_hat, phi_hat, alpha_hat = self.predicter(data)
-        loss_theta = F.mse_loss(theta_hat, theta)
-        loss_phi = F.mse_loss(phi_hat, phi)
-        loss_alpha = F.mse_loss(alpha_hat, alpha)
+        data = th.cat([sky, constants * th.ones_like(sky[:, 0:1])], dim=1)
+        theta_hat, phi_hat, alpha_hat = self(data)
+        loss_theta = F.mse_loss(theta_hat.view(-1, 1), theta.view(-1, 1))
+        loss_phi = F.mse_loss(phi_hat.view(-1, 1), phi.view(-1, 1))
+        loss_alpha = F.mse_loss(alpha_hat.view(-1, 1), alpha.view(-1, 1))
         loss = loss_theta + loss_phi + loss_alpha
         self.log('train_loss', loss)
         self.log('val_loss', loss)
