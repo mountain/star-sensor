@@ -2,9 +2,8 @@ numpy
 pandas
 scipy
 torch
+torchvision
 lightning
-
-leibniz
 
 Pillow
 opencv-python

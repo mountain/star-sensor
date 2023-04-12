@@ -25,8 +25,8 @@ print('processor: %s' % platform.processor())
 dataset = StarDataset()
 star_train, star_val = random_split(dataset, [9000, 1000])
 
-train_loader = DataLoader(star_train, batch_size=2, num_workers=1)
-val_loader = DataLoader(star_val, batch_size=2, num_workers=1)
+train_loader = DataLoader(star_train, batch_size=8, num_workers=1)
+val_loader = DataLoader(star_val, batch_size=8, num_workers=1)
 
 # training
 trainer = pl.Trainer(accelerator="mps", precision=32)
