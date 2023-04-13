@@ -38,10 +38,8 @@ class Baseline(pl.LightningModule):
             self.relu,
             self.dnsample,
             nn.Conv2d(256, 512, kernel_size=3, padding=2, dtype=th.float32),
-            self.relu,
-            self.dnsample,
             nn.Flatten(),
-            nn.Linear(12800, 3, dtype=th.float32),
+            nn.Linear(2048, 3, dtype=th.float32),
             nn.Tanh()
         )
 
