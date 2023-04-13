@@ -23,7 +23,6 @@ def main():
     mdl = importlib.import_module('models.%s' % opt.model, package=None)
     model = mdl._model_()
     checkpoint = th.load(opt.path)
-    print(checkpoint.keys())
     model.load_state_dict(checkpoint['state_dict'], strict=False)
     model.eval()
 
@@ -32,9 +31,9 @@ def main():
         constants = model.constants.view(1, 3, hnum, vnum).to(th.device('cpu'))
         data = th.cat([sky, constants], dim=1)
         lng_hat, lat_hat, rot_hat = model(data)
-        print(lng, lng_hat)
-        print(lat, lat_hat)
-        print(rot, rot_hat)
+        print(lng, lng_hat[0, 0].item())
+        print(lat, lat_hat[0, 0].item())
+        print(rot, rot_hat[0, 0].item())
 
 
 if __name__ == "__main__":
