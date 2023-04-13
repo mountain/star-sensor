@@ -28,8 +28,8 @@ def main():
     model.eval()
 
     with th.no_grad():
-        sky = th.from_numpy(view.copy()).float().reshape(1, 1, hnum, vnum)
-        constants = model.constants.view(1, 3, hnum, vnum)
+        sky = th.from_numpy(view.copy()).float().reshape(1, 1, hnum, vnum).to(th.device('cpu'))
+        constants = model.constants.view(1, 3, hnum, vnum).to(th.device('cpu'))
         data = th.cat([sky, constants], dim=1)
         lng_hat, lat_hat, rot_hat = model(data)
         print(lng, lng_hat)
