@@ -13,28 +13,22 @@ class Baseline(pl.LightningModule):
         self.relu = nn.ReLU()
         self.dnsample = nn.UpsamplingBilinear2d(scale_factor=0.5)
         self.sensor = nn.Sequential(
-            nn.Conv2d(1, 2, kernel_size=3, padding=2, dtype=th.float32),
+            nn.Conv2d(4, 8, kernel_size=192, padding=97, dtype=th.float32),
             self.relu,
             self.dnsample,
-            nn.Conv2d(2, 4, kernel_size=3, padding=2, dtype=th.float32),
+            nn.Conv2d(8, 16, kernel_size=96, padding=49, dtype=th.float32),
             self.relu,
             self.dnsample,
-            nn.Conv2d(4, 8, kernel_size=3, padding=2, dtype=th.float32),
+            nn.Conv2d(16, 32, kernel_size=48, padding=25, dtype=th.float32),
             self.relu,
             self.dnsample,
-            nn.Conv2d(8, 16, kernel_size=3, padding=2, dtype=th.float32),
+            nn.Conv2d(32, 64, kernel_size=24, padding=13, dtype=th.float32),
             self.relu,
             self.dnsample,
-            nn.Conv2d(16, 32, kernel_size=3, padding=2, dtype=th.float32),
+            nn.Conv2d(64, 128, kernel_size=12, padding=7, dtype=th.float32),
             self.relu,
             self.dnsample,
-            nn.Conv2d(32, 64, kernel_size=3, padding=2, dtype=th.float32),
-            self.relu,
-            self.dnsample,
-            nn.Conv2d(64, 128, kernel_size=3, padding=2, dtype=th.float32),
-            self.relu,
-            self.dnsample,
-            nn.Conv2d(128, 256, kernel_size=3, padding=2, dtype=th.float32),
+            nn.Conv2d(128, 256, kernel_size=6, padding=4, dtype=th.float32),
             self.relu,
             self.dnsample,
             nn.Conv2d(256, 512, kernel_size=3, padding=2, dtype=th.float32),
@@ -53,7 +47,9 @@ class Baseline(pl.LightningModule):
         self.constants = th.cat([r, s, c], dim=1).reshape(1, 3, hnum, vnum).to(device)
 
     def forward(self, sky):
-        result = self.sensor(sky) * 180
+        sky = sky.view(-1, 1, hnum, vnum)
+        data = th.cat([sky, self.constants * th.ones_like(sky) * (sky > 0)], dim=1)
+        result = self.sensor(data) * 180
         theta, phi, alpha = result[:, 0:1] + 180, result[:, 1:2] / 2, result[:, 2:3]
         return theta, phi, alpha
 
