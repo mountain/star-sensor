@@ -28,8 +28,10 @@ def main():
     model.eval()
 
     with th.no_grad():
-        x = th.from_numpy(view).float().reshape(hnum, vnum)
-        lng_hat, lat_hat, rot_hat = model(x)
+        sky = th.from_numpy(view).float().reshape(1, 1, hnum, vnum)
+        constants = model.constants.view(1, 3, hnum, vnum)
+        data = th.cat([sky, constants], dim=1)
+        lng_hat, lat_hat, rot_hat = model(data)
         print(lng, lng_hat)
         print(lat, lat_hat)
         print(rot, rot_hat)
