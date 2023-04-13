@@ -9,6 +9,7 @@ from data.dataset import StarDataset
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-n", "--n_epochs", type=int, default=200, help="number of epochs of training")
+parser.add_argument("-b", "--batch", type=int, default=8, help="batch size of training")
 parser.add_argument("-m", "--model", type=str, default='baseline', help="model to execute")
 opt = parser.parse_args()
 
@@ -25,11 +26,11 @@ print('processor: %s' % platform.processor())
 dataset = StarDataset()
 star_train, star_val = random_split(dataset, [9000, 1000])
 
-train_loader = DataLoader(star_train, batch_size=8, num_workers=1)
-val_loader = DataLoader(star_val, batch_size=8, num_workers=1)
+train_loader = DataLoader(star_train, batch_size=opt.batch, num_workers=1)
+val_loader = DataLoader(star_val, batch_size=opt.batch, num_workers=1)
 
 # training
-trainer = pl.Trainer(accelerator="mps", precision=32)
+trainer = pl.Trainer(accelerator="mps", precision=32, gpus=1, max_epochs=opt.n_epochs, progress_bar_refresh_rate=20)
 
 
 if __name__ == '__main__':
