@@ -24,7 +24,7 @@ hnum = 512
 vnum = 512
 hwin = 30 / 180 * np.pi / 2
 vwin = hwin / hnum * vnum
-limited_magnitude = 6.0
+limited_magnitude = 4.0
 
 
 if th.cuda.is_available():
