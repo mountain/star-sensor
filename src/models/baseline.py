@@ -12,7 +12,7 @@ class Baseline(pl.LightningModule):
         super().__init__()
         self.relu = nn.ReLU()
         self.dnsample = nn.UpsamplingBilinear2d(scale_factor=0.5)
-        self.predicter = nn.Sequential(
+        self.sensor = nn.Sequential(
             nn.Conv2d(1, 2, kernel_size=3, padding=2, dtype=th.float32),
             self.relu,
             self.dnsample,
@@ -55,7 +55,7 @@ class Baseline(pl.LightningModule):
         self.constants = th.cat([r, s, c], dim=1).reshape(1, 3, hnum, vnum).to(device)
 
     def forward(self, sky):
-        result = self.predicter(sky) * 180
+        result = self.sensor(sky) * 180
         theta, phi, alpha = result[:, 0:1] + 180, result[:, 1:2] / 2, result[:, 2:3]
         return theta, phi, alpha
 
