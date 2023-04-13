@@ -6,7 +6,7 @@ from util.sky import skyview
 from util.config import hnum, vnum
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-m", "--model", type=str, default='baseline', help="model to execute")
+parser.add_argument("-p", "--path", type=str, default='baseline.chpt', help="model to execute")
 opt = parser.parse_args()
 
 
