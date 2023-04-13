@@ -13,6 +13,12 @@ class Baseline(pl.LightningModule):
         self.relu = nn.ReLU()
         self.dnsample = nn.UpsamplingBilinear2d(scale_factor=0.5)
         self.predicter = nn.Sequential(
+            nn.Conv2d(1, 2, kernel_size=3, padding=2, dtype=th.float32),
+            self.relu,
+            self.dnsample,
+            nn.Conv2d(2, 4, kernel_size=3, padding=2, dtype=th.float32),
+            self.relu,
+            self.dnsample,
             nn.Conv2d(4, 8, kernel_size=3, padding=2, dtype=th.float32),
             self.relu,
             self.dnsample,
@@ -59,10 +65,8 @@ class Baseline(pl.LightningModule):
 
     def training_step(self, train_batch, batch_idx):
         theta, phi, alpha, sky = train_batch
-        constants = self.constants.view(-1, 3, hnum, vnum)
         sky = sky.view(-1, 1, hnum, vnum)
-        data = th.cat([sky, constants * th.ones_like(sky[:, 0:1])], dim=1)
-        theta_hat, phi_hat, alpha_hat = self(data)
+        theta_hat, phi_hat, alpha_hat = self(sky)
         loss_theta = F.mse_loss(theta_hat.view(-1, 1), theta.view(-1, 1))
         loss_phi = F.mse_loss(phi_hat.view(-1, 1), phi.view(-1, 1))
         loss_alpha = F.mse_loss(alpha_hat.view(-1, 1), alpha.view(-1, 1))
