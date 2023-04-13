@@ -22,7 +22,7 @@ def main():
     import importlib
     mdl = importlib.import_module('models.%s' % opt.model, package=None)
     model = mdl._model_()
-    model.load_state_dict(th.load('models/%s' % opt.path))
+    model.load_state_dict(th.load(opt.path))
     model.eval()
 
     with th.no_grad():

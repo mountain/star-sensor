@@ -30,7 +30,7 @@ train_loader = DataLoader(star_train, batch_size=opt.batch, num_workers=1)
 val_loader = DataLoader(star_val, batch_size=opt.batch, num_workers=1)
 
 # training
-trainer = pl.Trainer(accelerator="mps", precision=32, gpus=1, max_epochs=opt.n_epochs, progress_bar_refresh_rate=20)
+trainer = pl.Trainer(accelerator="mps", precision=32, max_epochs=opt.n_epochs)
 
 
 if __name__ == '__main__':
