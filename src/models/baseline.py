@@ -13,16 +13,16 @@ class Baseline(pl.LightningModule):
         self.relu = nn.ReLU()
         self.dnsample = nn.UpsamplingBilinear2d(scale_factor=0.5)
         self.sensor = nn.Sequential(
-            nn.Conv2d(4, 8, kernel_size=24, padding=13, dtype=th.float32),
+            nn.Conv2d(4, 8, kernel_size=12, padding=7, dtype=th.float32),
             self.relu,
             self.dnsample,
-            nn.Conv2d(8, 16, kernel_size=24, padding=13, dtype=th.float32),
+            nn.Conv2d(8, 16, kernel_size=12, padding=7, dtype=th.float32),
             self.relu,
             self.dnsample,
-            nn.Conv2d(16, 32, kernel_size=24, padding=13, dtype=th.float32),
+            nn.Conv2d(16, 32, kernel_size=12, padding=7, dtype=th.float32),
             self.relu,
             self.dnsample,
-            nn.Conv2d(32, 64, kernel_size=24, padding=13, dtype=th.float32),
+            nn.Conv2d(32, 64, kernel_size=12, padding=7, dtype=th.float32),
             self.relu,
             self.dnsample,
             nn.Conv2d(64, 128, kernel_size=12, padding=7, dtype=th.float32),
