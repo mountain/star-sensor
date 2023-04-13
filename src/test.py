@@ -22,7 +22,9 @@ def main():
     import importlib
     mdl = importlib.import_module('models.%s' % opt.model, package=None)
     model = mdl._model_()
-    model.load_state_dict(th.load(opt.path))
+    checkpoint = th.load(opt.path)
+    print(checkpoint.keys())
+    model.load_state_dict(checkpoint['state_dict'], strict=False)
     model.eval()
 
     with th.no_grad():
