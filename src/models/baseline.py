@@ -77,10 +77,7 @@ class Baseline(pl.LightningModule):
     def validation_step(self, val_batch, batch_idx):
         theta, phi, alpha, sky = val_batch
         sky = sky.view(-1, 1, hnum, vnum)
-        theta, phi, alpha, sky = theta, phi, alpha, sky
-        constants = self.constants.view(-1, 3, hnum, vnum)
-        data = th.cat([sky, constants * th.ones_like(sky[:, 0:1])], dim=1)
-        theta_hat, phi_hat, alpha_hat = self(data)
+        theta_hat, phi_hat, alpha_hat = self(sky)
         loss_theta = F.mse_loss(theta_hat.view(-1, 1), theta.view(-1, 1))
         loss_phi = F.mse_loss(phi_hat.view(-1, 1), phi.view(-1, 1))
         loss_alpha = F.mse_loss(alpha_hat.view(-1, 1), alpha.view(-1, 1))
