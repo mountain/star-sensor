@@ -22,9 +22,9 @@ import torch as th
 
 hnum = 128
 vnum = 128
-hwin = 30 / 180 * np.pi / 2
+hwin = 9 / 180 * np.pi / 2
 vwin = hwin / hnum * vnum
-limited_magnitude = 4.0
+limited_magnitude = 6.0
 
 
 if th.cuda.is_available():

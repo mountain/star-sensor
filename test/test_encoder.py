@@ -14,7 +14,7 @@ with th.no_grad():
 
     plt.plot(
         open('polar.png', 'wb'),
-        view('polar', 0.0, 90.0, 0.0).reshape(1, hnum, vnum)
+        view(0.0, 90.0, 0.0).reshape(1, hnum, vnum)
     )
     print('polar', code(0.0, 90.0, 0.0))
 
