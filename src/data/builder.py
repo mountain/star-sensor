@@ -4,7 +4,7 @@ import sys
 import numpy as np
 import cv2
 
-from util.sky import skyview
+from util.sky import view as skyview, code as encode
 from util.config import hnum, vnum
 
 
@@ -27,6 +27,9 @@ def main():
             cv2.imwrite(fname, view.reshape(hnum, vnum)[:, ::-1] * 2550)
             f.write('%0.5f, %0.5f, %0.5f, %s\n' % (lng, lat, rot, fname))
             f.flush()
+            fname = '%s/%s.csv' % (subfolder, token)
+            with open(fname, mode='w') as g:
+                g.write(('%s\n' % encode(lng, lat, rot).flatten()).replace('[', '').replace(']', '').replace(' ', ',').replace('\n', ''))
             print('.', end='')
             if ix % 100 == 0:
                 print('\n')

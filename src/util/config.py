@@ -22,7 +22,7 @@ import torch as th
 
 hnum = 128
 vnum = 128
-hwin = 9 / 180 * np.pi / 2
+hwin = 13 / 180 * np.pi / 2
 vwin = hwin / hnum * vnum
 limited_magnitude = 6.0
 
