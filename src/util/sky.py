@@ -268,10 +268,10 @@ class Skyview(nn.Module):
 
         mag = mags[star_filter > 0].view(n)
         ang = th.atan2(ix.float() - hnum // 2, iy.float() - vnum // 2)[star_filter > 0].view(n)
-        dst = th.sqrt((ix.float() - hnum // 2) ** 2 + (iy.float() - vnum // 2) ** 2)[star_filter > 0].view(n)
+        dst = th.sqrt(((ix.float() - hnum // 2) / hnum) ** 2 + ((iy.float() - vnum // 2) / vnum) ** 2)[star_filter > 0].view(n)
         idx = th.argmax(mag, dim=0)
         ang = th.fmod(ang - ang[idx:idx+1], 2 * np.pi) / np.pi * 180
-        ang = ang * (ang >= 0) + (180 + ang) * (ang < 0)
+        ang = ang * (ang >= 0) + (360 + ang) * (ang < 0)
 
         _, indices = th.sort(ang, dim=0)
         ang = ang[indices].view(n, 1)
