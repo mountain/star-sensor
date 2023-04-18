@@ -13,7 +13,7 @@ class Baseline(pl.LightningModule):
         super().__init__()
         self.encoder = MLP(3, [6, 12, 24])
         self.decoder = MLP(24, [12, 6, 3])
-        self.sensor = nn.Transformer(24, nhead=12, num_encoder_layers=3, num_decoder_layers=3, dim_feedforward=256)
+        self.sensor = nn.Transformer(24, nhead=24, num_encoder_layers=3, num_decoder_layers=3)
         self.constants = th.FloatTensor([10, 360, 1]).reshape(1, 1, 3).to(device)
 
     def forward(self, data):

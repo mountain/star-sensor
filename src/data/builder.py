@@ -24,7 +24,7 @@ def dump(arr):
 
 def main():
     with open('data/index.csv', 'w') as f:
-        for ix in range(1000):
+        for ix in range(10000):
             lng, lat, rot = rand_generate()
             view, code = skyview(lng, lat, rot)
             view = view.reshape(hnum, vnum)
