@@ -3,12 +3,11 @@
 import datetime
 
 from pytz import utc
-
 from skyfield.api import Star, Loader
-from skyfield.data import hipparcos
 from skyfield.api import Topos
-from util.config import limited_magnitude
+from skyfield.data import hipparcos
 
+from util.config import limited_magnitude
 
 load = Loader('.', expire=False)
 with load.open('./hip_main.dat.gz') as f:

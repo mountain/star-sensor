@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 
-import os
-import torch as th
-import torch.nn as nn
-import numpy as np
 import logging
 
+import numpy as np
+import torch as th
+import torch.nn as nn
 from skyfield.api import Star
-from util.stars import bright_stars_count, filtered
-from util.gauss import Gaussian
-from util.config import hnum, vnum, hwin, vwin, device
 
+from util.config import hnum, vnum, hwin, vwin, device
+from util.gauss import Gaussian
+from util.stars import bright_stars_count, filtered
 
 logger = logging.getLogger()
 

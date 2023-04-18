@@ -1,9 +1,8 @@
 import torch as th
+
 import util.plotter as plt
-
-from util.sky import view, code
 from util.config import hnum, vnum
-
+from util.sky import view, code
 
 with th.no_grad():
     plt.plot(

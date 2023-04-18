@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import torch as th
-import numpy as np
 import cv2
-
+import numpy as np
+import torch as th
 from torch.utils.data import Dataset
-from util.config import hnum, vnum
 
 
 class StarDataset(Dataset):
@@ -19,6 +17,24 @@ class StarDataset(Dataset):
 
     def __getitem__(self, idx):
         theta, phi, alpha, fpath = self.data[idx]
-        theta, phi, alpha = np.float32(theta),  np.float32(phi), np.float32(alpha)
+        theta, phi, alpha = np.float32(theta), np.float32(phi), np.float32(alpha)
         sky = np.array(cv2.imread(fpath.strip(), cv2.IMREAD_GRAYSCALE), dtype=np.float32) / 255
         return theta, phi, alpha, th.FloatTensor(sky)
+
+
+class CodeDataset(Dataset):
+    def __init__(self):
+        self.size = 10000
+        with open('data/index.csv') as f:
+            self.data = [ln[:-1].split(',') for ln in f.readlines() if len(ln.strip()) > 0]
+
+    def __len__(self):
+        return self.size
+
+    def __getitem__(self, idx):
+        theta, phi, alpha, fpath = self.data[idx]
+        theta, phi, alpha = np.float32(theta), np.float32(phi), np.float32(alpha)
+        fpath = fpath.replace('.png', '.csv')
+        with open(fpath) as f:
+            items = np.array(eval('[%s]' % f.readlines()[0]), dtype=np.float32).reshape(-1, 3)
+        return theta, phi, alpha, th.FloatTensor(items)

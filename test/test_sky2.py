@@ -1,9 +1,8 @@
-import torch as th
-import util.sky as sky
 import cv2
+import torch as th
 
+import util.sky as sky
 from util.config import hnum, vnum
-
 
 with th.no_grad():
     view = sky.skyview(82.0, 0.0, 0.0)

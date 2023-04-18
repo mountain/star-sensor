@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
+from threading import local
+
 import cv2
 import numpy as np
 
-from threading import local
 from util.config import hnum, vnum
-
 
 data = local()
 

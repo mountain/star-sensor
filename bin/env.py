@@ -1,8 +1,9 @@
 #!/usr/bin/env python3.6
 # -*- coding: utf-8 -*-
 
-import sys
 import os
+import sys
+
 import virtualenv as venv
 
 """

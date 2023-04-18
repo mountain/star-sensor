@@ -1,21 +1,26 @@
 import os.path
 import sys
 
-import numpy as np
 import cv2
+import numpy as np
 
-from util.sky import view as skyview, code as encode
 from util.config import hnum, vnum
+from util.sky import view as skyview, code as encode
+
+
+def rand_generate():
+    theta, phi = float(np.random.random(1) * np.pi * 2), float((np.random.random(1) - 0.5) * np.pi)
+    alpha = float((2 * np.random.random(1) - 1) * np.pi)
+    lng = theta / np.pi * 180
+    lat = phi / np.pi * 180
+    rot = alpha / np.pi * 180
+    return lng, lat, rot
 
 
 def main():
     with open('data/index.csv', 'w') as f:
         for ix in range(10000):
-            theta, phi = float(np.random.random(1) * np.pi * 2), float((np.random.random(1) - 0.5) * np.pi)
-            alpha = float((2 * np.random.random(1) - 1) * np.pi)
-            lng = theta / np.pi * 180
-            lat = phi / np.pi * 180
-            rot = alpha / np.pi * 180
+            lng, lat, rot = rand_generate()
             view = skyview(lng, lat, rot).reshape(hnum, vnum)
 
             import secrets

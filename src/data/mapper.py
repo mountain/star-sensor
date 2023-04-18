@@ -4,7 +4,6 @@ import numpy.fft as fft
 
 from util.map import starmap
 
-
 if __name__ == "__main__":
     spec = fft.fftshift(fft.fft2(starmap))
     spec = np.abs(spec)

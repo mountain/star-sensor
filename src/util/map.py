@@ -1,12 +1,12 @@
-import torch as th
-import torch.nn as nn
-import numpy as np
 import logging
 
+import numpy as np
+import torch as th
+import torch.nn as nn
 from skyfield.api import Star
-from util.stars import bright_stars_count, filtered
-from util.config import hnum, vnum, device
 
+from util.config import device
+from util.stars import bright_stars_count, filtered
 
 logger = logging.getLogger()
 

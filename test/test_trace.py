@@ -1,10 +1,9 @@
-import torch as th
 import numpy as np
-import util.sky as sky
+import torch as th
+
 import util.plotter as plt
-
+import util.sky as sky
 from util.config import hnum, vnum
-
 
 with th.no_grad():
     trace = []

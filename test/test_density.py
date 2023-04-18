@@ -1,9 +1,7 @@
 import numpy as np
 import torch as th
 
-from util.sky import view, code
-from util.config import hnum, vnum
-
+from util.sky import code
 
 with th.no_grad():
     maxpos, minpos = None, None
