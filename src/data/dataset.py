@@ -6,6 +6,14 @@ import torch as th
 from torch.utils.data import Dataset
 
 
+def workaround(line):
+    while line.find(',,') != -1:
+        line = line.replace(',,', ',')
+    while line[0] == ',':
+        line = line[1:]
+    return line
+
+
 class StarDataset(Dataset):
     def __init__(self):
         self.size = 10000
@@ -34,7 +42,7 @@ class CodeDataset(Dataset):
     def __getitem__(self, idx):
         theta, phi, alpha, fpath = self.data[idx]
         theta, phi, alpha = np.float32(theta), np.float32(phi), np.float32(alpha)
-        fpath = fpath.replace('.png', '.csv')
+        fpath = fpath.replace('.png', '.csv').strip()
         with open(fpath) as f:
-            items = np.array(eval('[%s]' % f.readlines()[0]), dtype=np.float32).reshape(-1, 3)
+            items = np.array(eval('[%s]' % workaround(f.readlines()[0])), dtype=np.float32).reshape(-1, 3)
         return theta, phi, alpha, th.FloatTensor(items)

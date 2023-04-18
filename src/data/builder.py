@@ -17,6 +17,10 @@ def rand_generate():
     return lng, lat, rot
 
 
+def dump(arr):
+    return ','.join(['%0.7f' % item for item in arr])
+
+
 def main():
     with open('data/index.csv', 'w') as f:
         for ix in range(10000):
@@ -34,7 +38,7 @@ def main():
             f.flush()
             fname = '%s/%s.csv' % (subfolder, token)
             with open(fname, mode='w') as g:
-                g.write(('%s\n' % encode(lng, lat, rot).flatten()).replace('[', '').replace(']', '').replace(' ', ',').replace('\n', ''))
+                g.write(('%s\n' % dump(encode(lng, lat, rot).flatten())))
             print('.', end='')
             if ix % 100 == 0:
                 print('\n')

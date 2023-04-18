@@ -9,12 +9,12 @@ from util.config import hnum, vnum, device
 class Baseline(pl.LightningModule):
     def __init__(self):
         super().__init__()
-        self.sensor = nn.LSTM(3, 3)
+        self.lstm = nn.LSTM(3, 3)
         self.constants = th.FloatTensor([10, 1, 360]).reshape(1, 1, 3).to(device)
 
     def forward(self, data):
         data = data.view(1, -1, 3) / self.constants
-        hidden = (th.randn(1, 1, 3), th.randn(1, 1, 3))
+        hidden = (th.randn_like(data), th.randn_like(data))
         result, hidden = self.lstm(data, hidden)
         theta, phi, alpha = result[:, -1, 0:1] * 360, (result[:, -1, 1:2] * 2 - 1) * 90, (result[:, -1, 2:3] * 2 - 1) * 180
         return theta, phi, alpha
