@@ -1,7 +1,7 @@
 import argparse
 import platform
 
-import pytorch_lightning as pl
+import lightning.pytorch as pl
 import torch as th
 from torch.utils.data import DataLoader
 from torch.utils.data import random_split

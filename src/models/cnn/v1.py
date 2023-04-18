@@ -1,4 +1,4 @@
-import pytorch_lightning as pl
+import lightning.pytorch as pl
 import torch as th
 from torch.nn import functional as F
 from torchvision.models.resnet import ResNet, Bottleneck

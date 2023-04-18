@@ -1,4 +1,4 @@
-import pytorch_lightning as pl
+import lightning.pytorch as pl
 import torch as th
 from torch import nn
 from torch.nn import functional as F
@@ -48,8 +48,8 @@ class Baseline(pl.LightningModule):
     def forward(self, sky):
         sky = sky.view(-1, 1, hnum, vnum)
         data = th.cat([sky, self.constants * th.ones_like(sky) * (sky > 0)], dim=1)
-        result = self.sensor(data) * 180
-        theta, phi, alpha = result[:, 0:1] + 180, result[:, 1:2] / 2, result[:, 2:3]
+        result = self.sensor(data)
+        theta, phi, alpha = (1 + result[:, 0:1]) * 180, result[:, 1:2] * 90, result[:, 2:3] * 180
         return theta, phi, alpha
 
     def configure_optimizers(self):
