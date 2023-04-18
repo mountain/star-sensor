@@ -18,6 +18,7 @@ def rand_generate():
 
 
 def dump(arr):
+    arr[arr.isNaN()] = 0
     return ','.join(['%0.7f' % item for item in arr])
 
 
