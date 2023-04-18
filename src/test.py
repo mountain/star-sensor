@@ -4,7 +4,7 @@ import torch as th
 
 from data.builder import rand_generate
 from util.config import hnum, vnum
-from util.sky import view as skyview, code as encode
+from util.sky import skyview
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--type", type=str, default='rnn', help="model type")
@@ -16,8 +16,9 @@ opt = parser.parse_args()
 def main():
     import importlib
     lng, lat, rot = rand_generate()
-    view = skyview(lng, lat, rot).reshape(1, 1, hnum, vnum)
-    code = encode(view).reshape(1, -1, 3)
+    view, code = skyview(lng, lat, rot)
+    view = view.reshape(1, 1, hnum, vnum)
+    code = code.reshape(1, -1, 3)
 
     mdl = importlib.import_module('models.%s.%s' % (opt.type, opt.model), package=None)
     model = mdl._model_()

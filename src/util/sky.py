@@ -269,7 +269,8 @@ class Skyview(nn.Module):
         ang = th.atan2(ix.float() - hnum // 2, iy.float() - vnum // 2)[star_filter > 0].view(n)
         dst = th.sqrt(((ix.float() - hnum // 2) / hnum) ** 2 + ((iy.float() - vnum // 2) / vnum) ** 2)[star_filter > 0].view(n)
         idx = th.argmax(mag, dim=0)
-        ang = th.fmod(ang - ang[idx:idx+1], 2 * np.pi) / np.pi * 180
+        ini = ang[idx:idx + 1]
+        ang = th.fmod(ang - ini, 2 * np.pi) / np.pi * 180
         ang = ang * (ang >= 0) + (360 + ang) * (ang < 0)
 
         _, indices = th.sort(ang, dim=0)
@@ -277,32 +278,23 @@ class Skyview(nn.Module):
         mag = 8 - 10 * mag[indices].view(n, 1)
         dst = dst[indices].view(n, 1)
 
-        return th.cat((mag, ang, dst), dim=1)
+        init = th.cat((th.zeros_like(mag[0:1]), ini.view(1, 1), th.ones_like(dst[0:1])), dim=1)
+        step = th.cat((mag, ang, dst), dim=1)
+
+        return th.cat((init, step), dim=0)
 
     def forward(self, theta, phi, alpha):
         transfer = self.transfer(theta, phi, alpha)
         sphere = rotate_points(transfer, self.sphere)
-        sky = self.get_img(sphere).view(hnum, vnum)
+        sky = self.get_img(sphere).view(-1, hnum, vnum)
+        code = self.get_code(sphere).view(-1, 3)
 
-        return sky
-
-    def encode(self, theta, phi, alpha):
-        transfer = self.transfer(theta, phi, alpha)
-        sphere = rotate_points(transfer, self.sphere)
-        return self.get_code(sphere).view(-1, 3)
+        return sky, code
 
 
 sky = Skyview().to(device)
 
-#@th.compile
-def _view(theta, phi, alpha):
-    return sky(theta, phi, alpha)
 
-#@th.compile
-def _code(theta, phi, alpha):
-    return sky.encode(theta, phi, alpha)
-
-
-view = lambda theta, phi, alpha: _view(theta, phi, alpha).detach().cpu().numpy()[::-1, :]
-code = lambda theta, phi, alpha: _code(theta, phi, alpha).detach().cpu().numpy()
-
+def skyview(theta, phi, alpha):
+    result = sky(theta, phi, alpha)
+    return result[0].detach().cpu().numpy(), result[1].detach().cpu().numpy()

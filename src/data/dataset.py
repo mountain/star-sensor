@@ -16,9 +16,9 @@ def workaround(line):
 
 class StarDataset(Dataset):
     def __init__(self):
-        self.size = 10000
         with open('data/index.csv') as f:
             self.data = [ln[:-1].split(',') for ln in f.readlines() if len(ln.strip()) > 0]
+            self.size = len(self.data)
 
     def __len__(self):
         return self.size
@@ -32,9 +32,9 @@ class StarDataset(Dataset):
 
 class CodeDataset(Dataset):
     def __init__(self):
-        self.size = 10000
         with open('data/index.csv') as f:
             self.data = [ln[:-1].split(',') for ln in f.readlines() if len(ln.strip()) > 0]
+            self.size = len(self.data)
 
     def __len__(self):
         return self.size

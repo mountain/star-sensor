@@ -1,7 +1,7 @@
 import numpy as np
 import torch as th
 
-from util.sky import code
+from util.sky import skyview
 
 with th.no_grad():
     maxpos, minpos = None, None
@@ -13,7 +13,7 @@ with th.no_grad():
         lng = theta / np.pi * 180
         lat = phi / np.pi * 180
         rot = alpha / np.pi * 180
-        size = code(lng, lat, rot).shape[0]
+        size = skyview(lng, lat, rot)[1].shape[0]
         if size > maxsize:
             maxpos = (lng, lat, rot)
             maxsize = size

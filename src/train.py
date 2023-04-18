@@ -36,7 +36,7 @@ if __name__ == '__main__':
         dataset = CodeDataset()
         opt.batch = 1
 
-    star_train, star_val = random_split(dataset, [9000, 1000])
+    star_train, star_val = random_split(dataset, [dataset.size // 10 * 9, dataset.size // 10])
     train_loader = DataLoader(star_train, batch_size=opt.batch, num_workers=1)
     val_loader = DataLoader(star_val, batch_size=opt.batch, num_workers=1)
 

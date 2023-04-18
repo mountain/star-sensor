@@ -2,21 +2,30 @@ import lightning.pytorch as pl
 import torch as th
 from torch import nn
 from torch.nn import functional as F
+from torchvision.ops import MLP
 
-from util.config import hnum, vnum, device
+
+from util.config import device
 
 
 class Baseline(pl.LightningModule):
     def __init__(self):
         super().__init__()
-        self.lstm = nn.LSTM(3, 3)
-        self.constants = th.FloatTensor([10, 1, 360]).reshape(1, 1, 3).to(device)
+        self.encoder = MLP(3, [6, 12, 24])
+        self.decoder = MLP(24, [12, 6, 3])
+        self.sensor = nn.Transformer(24, nhead=8, num_encoder_layers=4, num_decoder_layers=4, dim_feedforward=256)
+        self.constants = th.FloatTensor([10, 360, 1]).reshape(1, 1, 3).to(device)
 
     def forward(self, data):
         data = data.view(1, -1, 3) / self.constants
-        hidden = (th.randn_like(data), th.randn_like(data))
-        result, hidden = self.lstm(data, hidden)
-        theta, phi, alpha = result[:, -1, 0:1] * 360, (result[:, -1, 1:2] * 2 - 1) * 90, (result[:, -1, 2:3] * 2 - 1) * 180
+        length = data.size()[1]
+        tgt = self.encoder(data[0, 0:1, :])
+        for ix in range(length - 1):
+            src = self.encoder(data[0, ix+1:ix+2, :])
+            tgt = self.sensor(src, tgt)
+        tgt = self.decoder(tgt)
+
+        theta, phi, alpha = tgt[:, 0:1] * 360, (tgt[:, 1:2] * 2 - 1) * 90, (tgt[:, 1:2] * 2 - 1) * 180
         return theta, phi, alpha
 
     def configure_optimizers(self):

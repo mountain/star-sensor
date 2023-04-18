@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 
 from util.config import hnum, vnum
-from util.sky import view as skyview, code as encode
+from util.sky import skyview
 
 
 def rand_generate():
@@ -18,15 +18,17 @@ def rand_generate():
 
 
 def dump(arr):
-    arr[arr.isNaN()] = 0
+    arr[np.isnan(arr)] = 0
     return ','.join(['%0.7f' % item for item in arr])
 
 
 def main():
     with open('data/index.csv', 'w') as f:
-        for ix in range(10000):
+        for ix in range(1000):
             lng, lat, rot = rand_generate()
-            view = skyview(lng, lat, rot).reshape(hnum, vnum)
+            view, code = skyview(lng, lat, rot)
+            view = view.reshape(hnum, vnum)
+            code = code.flatten()
 
             import secrets
             token = secrets.token_hex(16)
@@ -39,7 +41,7 @@ def main():
             f.flush()
             fname = '%s/%s.csv' % (subfolder, token)
             with open(fname, mode='w') as g:
-                g.write(('%s\n' % dump(encode(lng, lat, rot).flatten())))
+                g.write(('%s\n' % dump(code)))
             print('.', end='')
             if ix % 100 == 0:
                 print('\n')
