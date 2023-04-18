@@ -13,7 +13,7 @@ class Baseline(pl.LightningModule):
         super().__init__()
         self.encoder = MLP(3, [6, 12, 24])
         self.decoder = MLP(24, [12, 6, 3])
-        self.sensor = nn.Transformer(24, nhead=8, num_encoder_layers=4, num_decoder_layers=4, dim_feedforward=256)
+        self.sensor = nn.Transformer(24, nhead=12, num_encoder_layers=3, num_decoder_layers=3, dim_feedforward=256)
         self.constants = th.FloatTensor([10, 360, 1]).reshape(1, 1, 3).to(device)
 
     def forward(self, data):
@@ -40,7 +40,7 @@ class Baseline(pl.LightningModule):
         loss_phi = F.mse_loss(phi_hat.view(-1, 1), phi.view(-1, 1))
         loss_alpha = F.mse_loss(alpha_hat.view(-1, 1), alpha.view(-1, 1))
         loss = loss_theta + loss_phi + loss_alpha
-        self.log('train_loss', loss)
+        self.log('train_loss', loss, prog_bar=True)
         return loss
 
     def validation_step(self, val_batch, batch_idx):
@@ -51,8 +51,7 @@ class Baseline(pl.LightningModule):
         loss_phi = F.mse_loss(phi_hat.view(-1, 1), phi.view(-1, 1))
         loss_alpha = F.mse_loss(alpha_hat.view(-1, 1), alpha.view(-1, 1))
         loss = loss_theta + loss_phi + loss_alpha
-        self.log('train_loss', loss)
-        self.log('val_loss', loss)
+        self.log('val_loss', loss, prog_bar=True)
 
 
 def _model_():
