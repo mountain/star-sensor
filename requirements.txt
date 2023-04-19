@@ -4,9 +4,6 @@ scipy
 torch
 torchvision
 lightning
-torch-scatter
-torch-sparse
-sparselinear
 
 
 Pillow
