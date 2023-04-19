@@ -43,7 +43,7 @@ class Model(pl.LightningModule):
         loss_phi = F.mse_loss(phi_hat.view(-1, 1), phi.view(-1, 1))
         loss_alpha = F.mse_loss(alpha_hat.view(-1, 1), alpha.view(-1, 1))
         loss = loss_theta + loss_phi + loss_alpha
-        self.log('train_loss', loss)
+        self.log('train_loss', loss, prog_bar=True)
         return loss
 
     def validation_step(self, val_batch, batch_idx):
@@ -57,8 +57,7 @@ class Model(pl.LightningModule):
         loss_phi = F.mse_loss(phi_hat.view(-1, 1), phi.view(-1, 1))
         loss_alpha = F.mse_loss(alpha_hat.view(-1, 1), alpha.view(-1, 1))
         loss = loss_theta + loss_phi + loss_alpha
-        self.log('train_loss', loss)
-        self.log('val_loss', loss)
+        self.log('val_loss', loss, prog_bar=True)
 
 
 def _model_():

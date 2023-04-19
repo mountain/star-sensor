@@ -25,14 +25,8 @@ class Baseline(pl.LightningModule):
             self.relu,
             self.dnsample,
             nn.Conv2d(64, 128, kernel_size=12, padding=7, dtype=th.float32),
-            self.relu,
-            self.dnsample,
-            nn.Conv2d(128, 256, kernel_size=6, padding=4, dtype=th.float32),
-            self.relu,
-            self.dnsample,
-            nn.Conv2d(256, 512, kernel_size=3, padding=2, dtype=th.float32),
             nn.Flatten(),
-            nn.Linear(73728, 3, dtype=th.float32),
+            nn.Linear(21632, 3, dtype=th.float32),
             nn.Tanh()
         )
 
@@ -64,7 +58,7 @@ class Baseline(pl.LightningModule):
         loss_phi = F.mse_loss(phi_hat.view(-1, 1), phi.view(-1, 1))
         loss_alpha = F.mse_loss(alpha_hat.view(-1, 1), alpha.view(-1, 1))
         loss = loss_theta + loss_phi + loss_alpha
-        self.log('train_loss', loss)
+        self.log('train_loss', loss, prog_bar=True)
         return loss
 
     def validation_step(self, val_batch, batch_idx):
@@ -75,8 +69,7 @@ class Baseline(pl.LightningModule):
         loss_phi = F.mse_loss(phi_hat.view(-1, 1), phi.view(-1, 1))
         loss_alpha = F.mse_loss(alpha_hat.view(-1, 1), alpha.view(-1, 1))
         loss = loss_theta + loss_phi + loss_alpha
-        self.log('train_loss', loss)
-        self.log('val_loss', loss)
+        self.log('val_loss', loss, prog_bar=True)
 
 
 def _model_():
