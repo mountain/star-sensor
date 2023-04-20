@@ -10,7 +10,7 @@ from data.dataset import StarDataset, CodeDataset
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-n", "--n_epochs", type=int, default=200, help="number of epochs of training")
-parser.add_argument("-b", "--batch", type=int, default=8, help="batch size of training")
+parser.add_argument("-b", "--batch", type=int, default=16, help="batch size of training")
 parser.add_argument("-t", "--type", type=str, default='rnn', help="model type")
 parser.add_argument("-m", "--model", type=str, default='baseline', help="model to execute")
 opt = parser.parse_args()

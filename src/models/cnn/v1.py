@@ -6,11 +6,6 @@ from torchvision.models.resnet import ResNet, Bottleneck
 from util.config import hnum, vnum, device
 
 
-class RegressionResNet(ResNet):
-    def __init__(self) -> None:
-        super().__init__(Bottleneck, [3, 4, 6, 3], 3, False, 1)
-
-
 class Model(pl.LightningModule):
     def __init__(self):
         super().__init__()
@@ -22,11 +17,13 @@ class Model(pl.LightningModule):
         a = th.atan2(grid[:, 0:1], grid[:, 1:2]) / th.pi
         self.constants = th.cat([r, a], dim=1).reshape(1, 2, hnum, vnum).to(device)
 
-        self.resnet = RegressionResNet()
+        self.resnet = ResNet(Bottleneck, [3, 8, 36, 3], 6, False, 1)
 
     def forward(self, input):
-        result = 180 * th.tanh(self.resnet(input))
-        theta, phi, alpha = result[:, 0:1] + 180, result[:, 1:2] / 2, result[:, 2:3]
+        result = self.resnet(input)
+        theta = th.atan2(result[:, 0:1], result[:, 1:2]) / th.pi * 180
+        phi = th.atan2(result[:, 2:3], result[:, 3:4]) / th.pi * 180
+        alpha = th.atan2(result[:, 4:5], result[:, 5:6]) / th.pi * 180
         return theta, phi, alpha
 
     def configure_optimizers(self):

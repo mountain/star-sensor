@@ -9,21 +9,25 @@ from util.config import device
 class Flow(pl.LightningModule):
     def __init__(self):
         super().__init__()
-        self.encoder = MLP(3, [6, 12])
-        self.decoder = MLP(12, [6, 3])
-        self.transform = MLP(24, [48, 12])
+        self.encoder = MLP(4, [8, 16, 24])
+        self.decoder = MLP(24, [48, 12, 6])
+        self.transform = MLP(48, [96, 192, 24])
         self.constants = th.FloatTensor([10, 360, 1]).reshape(1, 1, 3).to(device)
 
     def forward(self, data):
         data = data.view(1, -1, 3) / self.constants
         length = data.size()[1]
+        pos = (th.arange(0, length) / length).to(device)
+        data = th.cat([data, pos.view(1, -1, 1)], dim=2)
         tgt = self.encoder(data[0, 0:1, :])
         for ix in range(length - 1):
             src = self.encoder(data[0, ix+1:ix+2, :])
             tgt = self.transform(th.cat([src, tgt], dim=1))
         tgt = self.decoder(tgt)
 
-        theta, phi, alpha = tgt[:, 0:1] * 360, (tgt[:, 1:2] * 2 - 1) * 90, (tgt[:, 1:2] * 2 - 1) * 180
+        theta = th.atan2(tgt[:, 0:1], tgt[:, 1:2]) / th.pi * 180
+        phi = th.atan2(tgt[:, 2:3], tgt[:, 3:4]) / th.pi * 180
+        alpha = th.atan2(tgt[:, 4:5], tgt[:, 5:6]) / th.pi * 180
         return theta, phi, alpha
 
     def configure_optimizers(self):
