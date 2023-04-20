@@ -10,7 +10,7 @@ from data.dataset import StarDataset, CodeDataset
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-n", "--n_epochs", type=int, default=200, help="number of epochs of training")
-parser.add_argument("-b", "--batch", type=int, default=16, help="batch size of training")
+parser.add_argument("-b", "--batch", type=int, default=50, help="batch size of training")
 parser.add_argument("-t", "--type", type=str, default='rnn', help="model type")
 parser.add_argument("-m", "--model", type=str, default='baseline', help="model to execute")
 opt = parser.parse_args()
@@ -34,7 +34,6 @@ if __name__ == '__main__':
         dataset = StarDataset()
     else:
         dataset = CodeDataset()
-        opt.batch = 1
 
     star_train, star_val = random_split(dataset, [dataset.size // 10 * 9, dataset.size // 10])
     train_loader = DataLoader(star_train, batch_size=opt.batch, num_workers=1)

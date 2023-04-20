@@ -45,4 +45,5 @@ class CodeDataset(Dataset):
         fpath = fpath.replace('.png', '.csv').strip()
         with open(fpath) as f:
             items = np.array(eval('[%s]' % workaround(f.readlines()[0])), dtype=np.float32).reshape(-1, 3)
-        return theta, phi, alpha, th.FloatTensor(items)
+        tensor = th.FloatTensor(items)
+        return theta, phi, alpha, th.cat((tensor, th.zeros(96 - tensor.size()[0], 3)), dim=0)

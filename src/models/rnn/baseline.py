@@ -12,20 +12,22 @@ class Baseline(pl.LightningModule):
     def __init__(self):
         super().__init__()
         self.encoder = MLP(3, [6, 12, 24])
-        self.decoder = MLP(24, [12, 6, 3])
+        self.decoder = MLP(24, [48, 12, 6])
         self.sensor = nn.Transformer(24, nhead=24, num_encoder_layers=3, num_decoder_layers=3)
         self.constants = th.FloatTensor([10, 360, 1]).reshape(1, 1, 3).to(device)
 
     def forward(self, data):
-        data = data.view(1, -1, 3) / self.constants
-        length = data.size()[1]
-        tgt = self.encoder(data[0, 0:1, :])
+        data = data.view(-1, 96, 3) / self.constants
+        batch, length, _ = data.size()
+        tgt = self.encoder(data[:, 0, :]).view(batch, 24)
         for ix in range(length - 1):
-            src = self.encoder(data[0, ix+1:ix+2, :])
+            src = self.encoder(data[:, ix+1, :]).view(batch, 24)
             tgt = self.sensor(src, tgt)
-        tgt = self.decoder(tgt)
+        tgt = self.decoder(tgt).view(batch, 6)
 
-        theta, phi, alpha = tgt[:, 0:1] * 360, (tgt[:, 1:2] * 2 - 1) * 90, (tgt[:, 1:2] * 2 - 1) * 180
+        theta = th.atan2(tgt[:, 0:1], tgt[:, 1:2]) / th.pi * 180
+        phi = th.atan2(tgt[:, 2:3], tgt[:, 3:4]) / th.pi * 180
+        alpha = th.atan2(tgt[:, 4:5], tgt[:, 5:6]) / th.pi * 180
         return theta, phi, alpha
 
     def configure_optimizers(self):
