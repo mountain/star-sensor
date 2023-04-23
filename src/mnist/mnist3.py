@@ -1,39 +1,36 @@
 import torch
-import lightning as pl
-
 from torch import nn
 from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from torch.utils.data import random_split
 from torchvision.datasets import MNIST
 from torchvision import transforms
+import lightning as pl
+
+from nn.flow import MLP, Reshape, Conv2d
 
 
 class FlowModel(pl.LightningModule):
     def __init__(self):
         super().__init__()
         self.recognizer = nn.Sequential(
-            nn.Conv2d(1, 10, kernel_size=5, padding=2),
+            Conv2d(1, 10, kernel_size=5, padding=2),
             nn.MaxPool2d(2),
-            nn.ReLU(),
-            nn.Conv2d(10, 20, kernel_size=5, padding=2),
+            Reshape((10, 14, 14)),
+            Conv2d(10, 20, kernel_size=5, padding=2),
             nn.MaxPool2d(2),
-            nn.ReLU(),
-            nn.Conv2d(20, 40, kernel_size=5, padding=2),
+            Reshape((20, 7, 7)),
+            Conv2d(20, 40, kernel_size=5, padding=2),
             nn.MaxPool2d(2),
-            nn.ReLU(),
-            nn.Conv2d(40, 80, kernel_size=3, padding=1),
-            nn.MaxPool2d(2),
-            nn.ReLU(),
+            Reshape((40, 3, 3)),
             nn.Flatten(),
-            nn.Linear(80, 40),
-            nn.ReLU(),
-            nn.Linear(40, 10),
+            MLP(360, [50, 10]),
             nn.LogSoftmax(dim=1)
         )
 
     def forward(self, x):
-        return self.recognizer(x)
+        prob = self.recognizer(x)
+        return prob
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
@@ -42,7 +39,7 @@ class FlowModel(pl.LightningModule):
     def training_step(self, train_batch, batch_idx):
         x, y = train_batch
         x = x.view(-1, 1, 28, 28)
-        z = self(x)
+        z = self(x)[:, 0]
         loss = F.nll_loss(z, y)
         self.log('train_loss', loss, prog_bar=True)
         return loss
@@ -50,7 +47,7 @@ class FlowModel(pl.LightningModule):
     def validation_step(self, val_batch, batch_idx):
         x, y = val_batch
         x = x.view(-1, 1, 28, 28)
-        z = self(x)
+        z = self(x)[:, 0]
         loss = F.nll_loss(z, y)
         self.log('val_loss', loss, prog_bar=True)
 
@@ -72,6 +69,6 @@ test_loader = DataLoader(mnist_test, batch_size=32)
 model = FlowModel()
 
 # training
-trainer = pl.Trainer(accelerator='mps', precision=32, max_epochs=10)
+trainer = pl.Trainer(accelerator='cpu', precision=16, max_epochs=10)
 trainer.fit(model, train_loader, val_loader)
 trainer.test(model, test_loader)

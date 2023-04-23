@@ -23,8 +23,11 @@ class FlowModel(pl.LightningModule):
             nn.Conv2d(20, 40, kernel_size=5, padding=2),
             nn.MaxPool2d(2),
             nn.ReLU(),
+            nn.Conv2d(40, 80, kernel_size=3, padding=1),
+            nn.MaxPool2d(2),
+            nn.ReLU(),
             nn.Flatten(),
-            MLP(360, [50, 10]),
+            MLP(80, [40, 10]),
             nn.LogSoftmax(dim=1)
         )
 
