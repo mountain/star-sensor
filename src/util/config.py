@@ -32,7 +32,7 @@ if th.cuda.is_available():
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     device = th.device('cuda')
 elif th.backends.mps.is_available() and th.backends.mps.is_built():
-    device = th.device('cpu')
+    device = th.device('mps')
 else:
     device = th.device('cpu')
 

@@ -74,7 +74,13 @@ test_loader = DataLoader(mnist_test, batch_size=32)
 
 model = FlowModel()
 
+if torch.cuda.is_available():
+    trainer = pl.Trainer(accelerator='gpu', precision=32, max_epochs=20)
+elif torch.backends.mps.is_available() and torch.backends.mps.is_built():
+    trainer = pl.Trainer(accelerator='mps', precision=32, max_epochs=20)
+else:
+    trainer = pl.Trainer(accelerator='cpu', precision=32, max_epochs=20)
+
 # training
-trainer = pl.Trainer(accelerator='cpu', precision=16, max_epochs=10)
 trainer.fit(model, train_loader, val_loader)
 trainer.test(model, test_loader)
