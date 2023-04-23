@@ -28,7 +28,9 @@ class FlowModel(pl.LightningModule):
             nn.Flatten(),
             nn.Linear(80, 40),
             nn.ReLU(),
-            nn.Linear(40, 10),
+            nn.Linear(40, 20),
+            nn.ReLU(),
+            nn.Linear(20, 10),
             nn.LogSoftmax(dim=1)
         )
 
@@ -53,6 +55,9 @@ class FlowModel(pl.LightningModule):
         z = self(x)
         loss = F.nll_loss(z, y)
         self.log('val_loss', loss, prog_bar=True)
+        pred = z.data.max(1, keepdim=True)[1]
+        correct = pred.eq(y.data.view_as(pred)).sum() / y.size()[0]
+        self.log('correct', correct, prog_bar=True)
 
     def test_step(self, test_batch, batch_idx):
         x, y = test_batch
@@ -72,6 +77,6 @@ test_loader = DataLoader(mnist_test, batch_size=32)
 model = FlowModel()
 
 # training
-trainer = pl.Trainer(accelerator='mps', precision=32, max_epochs=10)
+trainer = pl.Trainer(accelerator='mps', precision=32, max_epochs=20)
 trainer.fit(model, train_loader, val_loader)
 trainer.test(model, test_loader)

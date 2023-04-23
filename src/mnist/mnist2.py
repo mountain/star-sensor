@@ -7,24 +7,29 @@ from torchvision.datasets import MNIST
 from torchvision import transforms
 import lightning as pl
 
-from nn.flow import MLP, Reshape, Conv2d
+from nn.flow import MLP, Reshape, Perturbation
 
 
 class FlowModel(pl.LightningModule):
     def __init__(self):
         super().__init__()
+        self.correct = 0.0
         self.recognizer = nn.Sequential(
-            Conv2d(1, 10, kernel_size=5, padding=2),
+            nn.Conv2d(1, 10, kernel_size=5, padding=2),
             nn.MaxPool2d(2),
+            MLP(1, [1]),
             Reshape((10, 14, 14)),
-            Conv2d(10, 20, kernel_size=5, padding=2),
+            nn.Conv2d(10, 20, kernel_size=5, padding=2),
             nn.MaxPool2d(2),
+            MLP(1, [1]),
             Reshape((20, 7, 7)),
-            Conv2d(20, 40, kernel_size=5, padding=2),
+            nn.Conv2d(20, 40, kernel_size=5, padding=2),
             nn.MaxPool2d(2),
+            MLP(1, [1]),
             Reshape((40, 3, 3)),
-            Conv2d(40, 80, kernel_size=3, padding=1),
+            nn.Conv2d(40, 80, kernel_size=3, padding=1),
             nn.MaxPool2d(2),
+            MLP(1, [1]),
             Reshape((80, 1, 1)),
             nn.Flatten(),
             MLP(80, [40, 20, 10]),
@@ -75,6 +80,6 @@ test_loader = DataLoader(mnist_test, batch_size=32)
 model = FlowModel()
 
 # training
-trainer = pl.Trainer(accelerator='cpu', precision=16, max_epochs=10)
+trainer = pl.Trainer(accelerator='cpu', precision=32, max_epochs=40)
 trainer.fit(model, train_loader, val_loader)
 trainer.test(model, test_loader)

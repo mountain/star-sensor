@@ -7,12 +7,13 @@ from torchvision.datasets import MNIST
 from torchvision import transforms
 import lightning as pl
 
-from nn.flow import MLP, Conv2d
+from nn.flow import MLP, Perturbation
 
 
 class FlowModel(pl.LightningModule):
     def __init__(self):
         super().__init__()
+        self.correct = 0.0
         self.recognizer = nn.Sequential(
             nn.Conv2d(1, 10, kernel_size=5, padding=2),
             nn.MaxPool2d(2),
@@ -27,7 +28,7 @@ class FlowModel(pl.LightningModule):
             nn.MaxPool2d(2),
             nn.ReLU(),
             nn.Flatten(),
-            MLP(80, [40, 10]),
+            MLP(80, [40, 20, 10]),
             nn.LogSoftmax(dim=1)
         )
 
@@ -52,6 +53,9 @@ class FlowModel(pl.LightningModule):
         z = self(x)
         loss = F.nll_loss(z, y)
         self.log('val_loss', loss, prog_bar=True)
+        pred = z.data.max(1, keepdim=True)[1]
+        self.correct = pred.eq(y.data.view_as(pred)).sum() / y.size()[0]
+        self.log('correct', self.correct, prog_bar=True)
 
     def test_step(self, test_batch, batch_idx):
         x, y = test_batch
@@ -71,6 +75,6 @@ test_loader = DataLoader(mnist_test, batch_size=32)
 model = FlowModel()
 
 # training
-trainer = pl.Trainer(accelerator='cpu', precision=16, max_epochs=10)
+trainer = pl.Trainer(accelerator='cpu', precision=16, max_epochs=20)
 trainer.fit(model, train_loader, val_loader)
 trainer.test(model, test_loader)
