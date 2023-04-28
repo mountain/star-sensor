@@ -16,15 +16,10 @@ parser.add_argument("-m", "--model", type=str, default='baseline', help="model t
 opt = parser.parse_args()
 
 
-def processor():
-    return 'arm'
-
-
-platform.processor = processor
-
-print('mps: %s' % th.backends.mps.is_available())
-print('processor: %s' % platform.processor())
-
+if th.cuda.is_available():
+    accelerator = 'gpu'
+else:
+    accelerator = 'cpu'
 
 if __name__ == '__main__':
     import importlib
@@ -41,7 +36,7 @@ if __name__ == '__main__':
 
     # training
     print('construct trainer...')
-    trainer = pl.Trainer(accelerator="mps", precision=32, max_epochs=opt.n_epochs)
+    trainer = pl.Trainer(accelerator=accelerator, precision=32, max_epochs=opt.n_epochs)
 
     print('construct model...')
     mdl = importlib.import_module('models.%s.%s' % (opt.type, opt.model), package=None)
