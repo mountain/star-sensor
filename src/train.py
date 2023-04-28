@@ -1,5 +1,4 @@
 import argparse
-import platform
 
 import lightning.pytorch as pl
 import torch as th
