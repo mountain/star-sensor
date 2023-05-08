@@ -21,8 +21,8 @@ class Model(pl.LightningModule):
 
     def forward(self, input):
         result = self.resnet(input)
-        theta = th.atan2(result[:, 0:1], result[:, 1:2]) / th.pi * 180
-        phi = th.atan2(result[:, 2:3], result[:, 3:4]) / th.pi * 180
+        theta = th.atan2(result[:, 0:1], result[:, 1:2]) / th.pi * 180 + 180
+        phi = th.atan2(result[:, 2:3], th.sigmoid(result[:, 3:4])) / th.pi * 180
         alpha = th.atan2(result[:, 4:5], result[:, 5:6]) / th.pi * 180
         return theta, phi, alpha
 
